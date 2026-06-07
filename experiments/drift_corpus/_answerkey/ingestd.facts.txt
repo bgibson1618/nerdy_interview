@@ -1,0 +1,51 @@
+# VALUE FACTS
+DEFAULT_CONFIG.pollIntervalMs = 5000 in src/config.ts, matching PRD R/section 5, README, and CONTEXT.md
+DEFAULT_CONFIG.batchSize = 64 across config.ts, PRD R8, ARCHITECTURE 4.5, README, CONTEXT.md
+DEFAULT_CONFIG.flushIntervalMs = 2000 across config.ts, PRD R8, ARCHITECTURE 4.5, README, CONTEXT.md
+DEFAULT_CONFIG.concurrency = 4 across config.ts, PRD R3, ARCHITECTURE 4.2, README, CONTEXT.md
+DEFAULT_CONFIG.maxRetries = 5 across config.ts, PRD R5, ARCHITECTURE 4.3, README, CONTEXT.md
+DEFAULT_CONFIG.backoffBaseMs = 200 across config.ts, PRD R4, ARCHITECTURE 4.3, README, CONTEXT.md
+DEFAULT_CONFIG.backoffFactor = 2 across config.ts, PRD R4, ARCHITECTURE 4.3, README, CONTEXT.md
+DEFAULT_CONFIG.backoffMaxMs = 30000 across config.ts, PRD R4, ARCHITECTURE 4.3, README, CONTEXT.md
+DEFAULT_CONFIG.dedupWindowHours = 24 across config.ts, PRD R2, ARCHITECTURE 4.1, README, CONTEXT.md
+DEFAULT_CONFIG.retentionHours = 168 across config.ts, PRD R10, ARCHITECTURE 4.8, README, CONTEXT.md
+DEFAULT_CONFIG.deadLetterAbortThreshold = 100 across config.ts, PRD R11, ARCHITECTURE 4.9, README, CONTEXT.md
+EXIT_CODES = {OK:0, ERROR:1, CONFIG:2, INTERRUPTED:3, DEAD_LETTER:4} in src/types.ts matches the README table, PRD R11, ARCHITECTURE 4.9
+Status enum has exactly 5 values pending|in_progress|done|failed|dead in src/types.ts STATUSES, ARCHITECTURE 3.3, CONTEXT.md
+Backoff ceilings for attempts 1..5 are 200/400/800/1600/3200 ms (200*2^(k-1)) per retry.ts#computeBackoffMs, PRD R4, ARCHITECTURE 4.3, CONTEXT.md
+Hashing uses SHA-256 streamed in 64 KiB chunks (HASH_CHUNK_BYTES = 64*1024) in dedup.ts, matching ARCHITECTURE 4.1
+manifest table columns id/path/content_hash/size_bytes/mtime_ms/status/attempts/last_error/discovered_at/updated_at/deleted_at in db.ts SCHEMA_SQL match ARCHITECTURE 3.1
+Indexes idx_manifest_status_order (status, discovered_at, id) and idx_manifest_hash (content_hash, status, updated_at) in db.ts match ARCHITECTURE 3.1
+checkpoint is a single row id=1 with columns last_committed_id/batches_committed/updated_at in db.ts, matching ARCHITECTURE 3.2
+CLI commands are run/scan/status/requeue with flags --config/--db/--json/--verbose/--once/--dead in cli.ts, matching README and IMPLEMENTATION_PLAN Phase 10
+bin entry maps ingestd -> dist/cli.js in package.json, matching README CLI usage
+Default config path ./ingestd.config.json and default db path ./ingestd.sqlite in cli.ts parseArgs match README global flags
+Example secret is the placeholder FAKE_DEMO_SECRET in ingestd.config.example.json (sinkToken)
+RunSummary fields are scanned/enqueued/deduped/processed/failed/dead in types.ts, matching IMPLEMENTATION_PLAN Phase 9 and README library usage
+verify script is tsc --noEmit in package.json, matching README and CONTEXT environment contract
+
+# BEHAVIORAL CONTRACTS
+Dedup is content-addressed not path-addressed: isDuplicate (src/dedup.ts) matches on content_hash with no path predicate, so identical bytes under a different path are a hit, per PRD R2 / ARCHITECTURE 4.1
+A dedup hit only counts against a LIVE, status='done' row within the window: isDuplicate (src/dedup.ts) filters deleted_at IS NULL AND status='done' AND updated_at >= now - dedupWindowHours*3600000, per ARCHITECTURE 4.1
+On a dedup hit the sink handler is NOT called: processRow (src/ingestor.ts) returns status done before the sink loop when isDuplicate is true, per PRD R2 acceptance A2
+Concurrency is hard-capped at 4 in-flight: WorkerPool.acquire (src/pool.ts) only increments inFlight while inFlight < concurrency and otherwise queues a waiter, and release hands the freed slot directly to the next waiter keeping inFlight level, per PRD R3 / ARCHITECTURE 4.2
+Backoff uses full jitter over [0, ceiling]: nextDelayMs (src/retry.ts) returns Math.floor(Math.random()*(ceiling+1)) where ceiling = min(base*factor^(attempt-1), max), per PRD R4 / ARCHITECTURE 4.3
+Dead-letter fires after exactly maxRetries total attempts: shouldDeadLetter (src/retry.ts) is attempts>=maxRetries and processRow increments attempts before the check, so a perpetually-failing task lands in dead at attempts=5 with defaults, per PRD R5 acceptance A5
+A handler failing attempts 1-4 and succeeding on attempt 5 ends status=done with attempts=5: the retry loop in processRow (src/ingestor.ts) increments attempts then tries the sink, per PRD acceptance A4
+Manifest status updates and the resume checkpoint commit atomically in one transaction per batch: BatchWriter.commitTxn (src/batch.ts) wraps updateStmt rows + checkpointStmt in db.transaction, so either all-or-nothing, per PRD R6/R8 / ARCHITECTURE 4.5
+Batch flush triggers on size OR age: BatchWriter.add flushes when buffer.length>=batchSize and isFlushDue returns true when now-firstAddedAt>=flushIntervalMs (src/batch.ts), per PRD R8
+The final partial batch is always force-flushed on drain/shutdown: BatchWriter.close calls flush and runOnce calls batch.close() after the loop (src/ingestor.ts, src/batch.ts), per PRD R8
+checkpoint.last_committed_id only advances to the max id in a batch (never regresses): checkpointStmt uses MAX(last_committed_id, ?) in src/batch.ts, per ARCHITECTURE 3.2/4.5
+FIFO dequeue ordering is discovered_at ASC, id ASC: Ingestor.dequeue (src/ingestor.ts) ORDER BY discovered_at ASC, id ASC, and retried items keep their original discovered_at (only status/attempts change), per PRD R9 / ARCHITECTURE 4.6
+Startup recovery rewinds only in_progress rows to pending before scanning: Ingestor.recover (src/ingestor.ts) is the sole UPDATE ... WHERE status='in_progress', so committed work is never repeated and in-flight work is never lost, per PRD R6 / ARCHITECTURE 4.7
+Conflict resolution is last-write-wins by mtime_ms with a greater-content_hash tiebreak: candidateWins (src/scanner.ts) compares mtime_ms then falls back to lexicographic content_hash comparison, per PRD R7 / ARCHITECTURE 4.4
+A changed/rediscovered file resets status to pending and attempts to 0 and clears the tombstone: upsertCandidate (src/scanner.ts) UPDATE sets status='pending', attempts=0, content_hash=NULL, deleted_at=NULL, per PRD R7/R1/R10
+Unchanged files (same mtime_ms AND size_bytes, live row) are not re-enqueued: upsertCandidate returns 'unchanged' without touching the row when both match and deleted_at is null (src/scanner.ts), per PRD R1
+Missing files are soft-deleted (row retained via deleted_at), not hard-deleted: softDeleteMissing (src/scanner.ts) sets deleted_at on live rows not seen in the scan, per PRD R10 / ARCHITECTURE 4.8
+Hard purge only removes tombstones older than retentionHours: purgeExpired (src/scanner.ts) deletes WHERE deleted_at IS NOT NULL AND deleted_at < now-retentionHours*3600000 (168h default), per PRD R10
+Symlinks are not followed during discovery: walk (src/scanner.ts) skips entries where ent.isSymbolicLink() is true, per PRD R1
+runForever aborts with the DEAD_LETTER exit path when a single pass produces more than deadLetterAbortThreshold dead items: Ingestor.runForever checks last.dead > threshold and the CLI returns EXIT_CODES.DEAD_LETTER (src/ingestor.ts, src/cli.ts), per PRD R11 / ARCHITECTURE 4.9
+Graceful shutdown stops admitting new work, lets in-flight finish, flushes, and exits 3: SIGINT/SIGTERM call ingestor.stop() setting the stopping flag which halts dequeue/admission while batch.close() still runs, and the CLI returns INTERRUPTED (src/cli.ts, src/ingestor.ts), per PRD R11
+requeue --dead resets dead items to pending with attempts=0: Ingestor.requeueDead (src/ingestor.ts) UPDATE ... SET status='pending', attempts=0, last_error=NULL WHERE status='dead', per PRD R5
+debug logs are suppressed unless --verbose and --json emits one NDJSON object with ts/level/event/msg: createLogger.emit (src/logger.ts) returns early for level==='debug' when !verbose and JSON.stringifies a single record, per PRD R12 / ARCHITECTURE 4.10
+Config validation rejects bad input before any DB work, mapping to exit 2: validateConfig (src/config.ts) throws ConfigError for empty sources / non-positive ints / backoffFactor<=1 / flushIntervalMs>pollIntervalMs and the CLI catches ConfigError returning EXIT_CODES.CONFIG before constructing the Ingestor, per PRD R11 / section 5

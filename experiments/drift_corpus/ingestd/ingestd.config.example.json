@@ -1,0 +1,15 @@
+{
+  "sources": ["./inbox"],
+  "pollIntervalMs": 5000,
+  "batchSize": 64,
+  "flushIntervalMs": 2000,
+  "concurrency": 4,
+  "maxRetries": 5,
+  "backoffBaseMs": 200,
+  "backoffFactor": 2,
+  "backoffMaxMs": 30000,
+  "dedupWindowHours": 24,
+  "retentionHours": 168,
+  "deadLetterAbortThreshold": 100,
+  "sinkToken": "FAKE_DEMO_SECRET"
+}

@@ -1,0 +1,29 @@
+{
+  "name": "ingestd",
+  "version": "0.4.0",
+  "description": "A file-ingestion / sync worker (CLI + library) with content-hash dedup, bounded concurrency, retry+backoff, dead-letter, and checkpoint/resume.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ingestd": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js run",
+    "test": "node --test",
+    "verify": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}
