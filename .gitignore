@@ -1,1 +1,6 @@
 .idea/
+
+# Roster run artifacts — per-agent work dirs (output.md, terminal.log, etc.).
+# This repo is dual-purpose (study material + agent_roster testbed); roster runs
+# write here and should never land in study-material history.
+work/

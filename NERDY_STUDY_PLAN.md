@@ -141,6 +141,8 @@ This mirrors **Google's reviewer guide** — the canonical reference and your si
 - [ ] `key` using array index; derived state stored in state; needless re-renders
 - [ ] Mutating state directly instead of replacing it; XSS via `dangerouslySetInnerHTML`
 
+**▶ Worked exercises:** [`study/exercises/js-ts-react-gotchas.md`](study/exercises/js-ts-react-gotchas.md) — 30 *buggy-snippet → why-it-slips-past-review → fix* drills across these gotcha classes. Do a handful out loud before Monday.
+
 > Rule of thumb: real reviews catch 60–90% of bugs; the best ones stay **under ~400 LOC** and resist nitpicking — only ~15% of review comments address real defects, so aim your attention at logic/security/design, not formatting. ([Augment](https://www.augmentcode.com/guides/code-review-checklist-40-questions-before-you-approve))
 
 ---
@@ -276,6 +278,8 @@ Rehearse crisp 60–90s answers:
 ## Nerdy Tech Stack — What, Alternatives & Why It Fits
 
 This stack comes from `NERDY_STACK.md`; the "why Nerdy would pick it" notes below are informed inference, not confirmed internal architecture.
+
+**▶ Likely interviewer questions for every technology below — with model answers, plus deep zero-to-competent primers for GraphQL & gRPC:** [`study/exercises/stack-interview-qa.md`](study/exercises/stack-interview-qa.md). The review is in TypeScript, but the engineer may probe anything here.
 
 ### TypeScript/JavaScript
 - **What it is:** JavaScript is the browser's native language and also runs on servers through Node.js; TypeScript adds static types, interfaces, generics, and safer tooling while still compiling to JavaScript.
