@@ -1,0 +1,100 @@
+{
+  "project": "pulse-dashboard",
+  "base_verdict_before_injection": "ON TRACK",
+  "injected_verdict": "SIGNIFICANT DRIFT",
+  "n_drifts": 12,
+  "drifts": [
+    {
+      "id": "PD-D1", "class": "numeric/config", "tier": "obvious",
+      "drift_in": "src/config.ts",
+      "injected": "pollIntervalMs = 60000",
+      "truth": "poll interval = 30000 ms / 30 s (PRD R4; ARCHITECTURE config table + polling layer; README config table; CONTEXT; IMPLEMENTATION_PLAN Phase 4)",
+      "detect": "code polls every 60000 ms but every doc specifies 30000 ms / 30 s"
+    },
+    {
+      "id": "PD-D2", "class": "numeric/config", "tier": "subtle",
+      "drift_in": "src/config.ts",
+      "injected": "pageSize = 50",
+      "truth": "Overview page size = 25 (PRD R2; ARCHITECTURE config table; README; CONTEXT; IMPLEMENTATION_PLAN Phase 4)",
+      "detect": "code page size (50) contradicts the documented 25 cards per page"
+    },
+    {
+      "id": "PD-D3", "class": "config value (API version)", "tier": "moderate",
+      "drift_in": "src/config.ts",
+      "injected": "apiBaseUrl = 'https://api.pulse.example.com/v2'",
+      "truth": "API base URL = https://api.pulse.example.com/v1 (ARCHITECTURE config table + API surface; README; CONTEXT)",
+      "detect": "code points at the /v2 API while all docs specify /v1"
+    },
+    {
+      "id": "PD-D4", "class": "route-vs-doc", "tier": "moderate",
+      "drift_in": "src/App.tsx",
+      "injected": "Settings route + nav link path changed to /preferences",
+      "truth": "the settings route path is /settings (ARCHITECTURE route map; README Views table; CONTEXT; PRD R1)",
+      "detect": "code routes Settings at /preferences but every doc says /settings"
+    },
+    {
+      "id": "PD-D5", "class": "feature flag default", "tier": "subtle",
+      "drift_in": "src/config.ts (flags)",
+      "injected": "enableExport = true",
+      "truth": "enableExport defaults to false (PRD R7; ARCHITECTURE flags table; README; CONTEXT)",
+      "detect": "code defaults enableExport to true; docs say its default is false"
+    },
+    {
+      "id": "PD-D6", "class": "plan/status-vs-code (missing behavior)", "tier": "moderate",
+      "drift_in": "src/hooks/usePolling.ts",
+      "injected": "removed the visibility gating: polling no longer pauses on a hidden tab nor refetches on visibilitychange (now a plain setInterval)",
+      "truth": "polling MUST pause while the tab is hidden and refetch when it becomes visible (PRD R4; ARCHITECTURE polling layer; CONTEXT 'pauses on hidden tab'; IMPLEMENTATION_PLAN Phase 4)",
+      "detect": "docs say polling pauses on hidden tabs and refetches on visibility; usePolling now just polls on a fixed interval"
+    },
+    {
+      "id": "PD-D7", "class": "arch-vs-code (+ contradicts read-only product)", "tier": "moderate",
+      "drift_in": "ARCHITECTURE.md (Auth model)",
+      "injected": "OAuth Scope = 'metrics:read metrics:write'",
+      "truth": "OAuth scope = metrics:read (src/auth/oauth.ts SCOPE; README Authentication). The product is read-only (README intro), so a write scope is also semantically wrong.",
+      "detect": "ARCHITECTURE requests a metrics:write scope while the code and README use metrics:read only (and the app is read-only)"
+    },
+    {
+      "id": "PD-D8", "class": "stale-status (claims unbuilt feature)", "tier": "obvious",
+      "drift_in": "CONTEXT.md (What's shipped)",
+      "injected": "claims real-time updates over a WebSocket channel (wss://api.pulse.example.com/live)",
+      "truth": "there is no WebSocket anywhere — the app is polling-only (src/hooks/usePolling.ts; ARCHITECTURE polling layer); no ws/wss client, no live channel in code or other docs",
+      "detect": "CONTEXT claims a shipped WebSocket live-update channel that does not exist in the code"
+    },
+    {
+      "id": "PD-D9", "class": "arch-vs-plan (plan claims component absent from arch/code)", "tier": "moderate",
+      "drift_in": "IMPLEMENTATION_PLAN.md (Phase 6 acceptance)",
+      "injected": "adds: 'All UI strings are localized via react-i18next (English + Spanish bundles)'",
+      "truth": "there is no i18n/localization — no react-i18next dependency in package.json, no locale bundles, components use hardcoded English strings; ARCHITECTURE never mentions i18n",
+      "detect": "the plan claims a react-i18next localization deliverable that the architecture and code never realize"
+    },
+    {
+      "id": "PD-D10", "class": "numeric/value (doc vs everything)", "tier": "subtle",
+      "drift_in": "README.md (Configuration table)",
+      "injected": "defaultDateRange = '30d' (last 30 days)",
+      "truth": "default date range = '7d' / last 7 days (PRD R5; ARCHITECTURE; src/config.ts defaultDateRange; CONTEXT)",
+      "detect": "README says the default date range is 30d while code and the other docs say 7d"
+    },
+    {
+      "id": "PD-D11", "class": "storage key (code vs doc)", "tier": "subtle",
+      "drift_in": "src/auth/oauth.ts (SESSION_KEY)",
+      "injected": "SESSION_KEY = 'pulse.auth'",
+      "truth": "session is stored under sessionStorage key 'pulse.session' (ARCHITECTURE auth flow; README Authentication; IMPLEMENTATION_PLAN Phase 3)",
+      "detect": "code stores the session under 'pulse.auth' but the docs specify the key 'pulse.session'"
+    },
+    {
+      "id": "PD-D12", "class": "endpoint path (code vs arch/doc)", "tier": "moderate",
+      "drift_in": "src/api/metrics.ts (getProfile)",
+      "injected": "getProfile calls GET /profile",
+      "truth": "session validation endpoint = GET /me (ARCHITECTURE API table; README API table; PRD R6)",
+      "detect": "code calls GET /profile while the documented endpoint is GET /me"
+    }
+  ],
+  "coherent_controls": [
+    { "id": "PD-C1", "fact": "Vite dev server port = 5173", "coherent_across": "vite.config.ts, README, ARCHITECTURE", "why_tempting": "several config numbers drifted; the dev port did not" },
+    { "id": "PD-C2", "fact": "enableDarkMode defaults to true", "coherent_across": "config.ts, ARCHITECTURE flags, README, CONTEXT", "why_tempting": "the sibling flag enableExport drifted (D5); this one is intact" },
+    { "id": "PD-C3", "fact": "DateRange union = '24h' | '7d' | '30d'", "coherent_across": "types.ts, ARCHITECTURE, README, SettingsView RANGES", "why_tempting": "looks enum-like and the README default-range value drifted (D10); the union itself is consistent" },
+    { "id": "PD-C4", "fact": "Metric fields id/name/unit/latestValue; MetricPoint fields timestamp/value", "coherent_across": "types.ts, ARCHITECTURE data model", "why_tempting": "data-model tables invite nit-picking but are consistent" },
+    { "id": "PD-C5", "fact": "OAuth client_id = pulse-dashboard-web, redirect_uri = http://localhost:5173/auth/callback", "coherent_across": "oauth.ts, ARCHITECTURE, README", "why_tempting": "the auth area has a real drift (scope, D7), inviting over-flagging of nearby auth facts" },
+    { "id": "PD-C6", "fact": "endpoints GET /metrics, GET /metrics/:id, GET /metrics/:id/series?range=", "coherent_across": "api/metrics.ts, ARCHITECTURE API table, README", "why_tempting": "the sibling /me endpoint drifted (D12); these three are intact" }
+  ]
+}

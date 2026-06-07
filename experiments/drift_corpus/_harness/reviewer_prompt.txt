@@ -1,0 +1,45 @@
+You are doing an independent sanity / coherence review of the project in THIS workspace,
+with COMPLETELY FRESH EYES. You have no prior context — read only what is on disk here.
+
+Read these files (paths are relative to the workspace root):
+- CONTEXT.md
+- PRD.md              (the source brief / product requirements)
+- ARCHITECTURE.md
+- IMPLEMENTATION_PLAN.md
+- README.md
+- All code under src/
+
+Your job: find every place where the DOCS and the CODE (or two docs) DISAGREE — i.e.
+documentation/code drift. Check drift in BOTH directions: code that violates what the docs
+specify, AND docs that the code has quietly outgrown or that claim things the code does not do.
+Pay special attention to specific, checkable facts: endpoint paths and HTTP methods; config
+values and numbers (ports, timeouts, TTLs, page sizes, poll intervals, rate limits); database
+schema and field names; enums and their members; feature lists; feature-flag defaults; route
+paths; storage keys; and phase/status "shipped" claims in CONTEXT, README, and the plan.
+
+Produce a report with EXACTLY these sections:
+
+### 1. Source Brief -> Architecture
+Does the architecture satisfy every PRD requirement? List each requirement and whether it is
+addressed; flag anything unsatisfied, under-specified, overbuilt, or contradicted.
+
+### 2. Architecture -> Delivery Plan
+Does the plan build the architecture coherently with acceptance criteria? Flag missing tasks,
+risky sequencing, stale assumptions, or plan claims that reference components the architecture
+or code do not actually have.
+
+### 3. Delivery/Status -> Code
+Does the code match what the plan, CONTEXT, and README say shipped? Enumerate EVERY concrete
+inconsistency between a doc claim and the code (or between two docs) as a numbered list. For
+each item, write one line in the form:
+  DRIFT: <the exact doc claim and where> vs <the conflicting code/doc fact and where (file + section)>
+
+### 4. Verdict
+One of: ON TRACK / MINOR DRIFT / SIGNIFICANT DRIFT — then the most important issues, most
+important first.
+
+Be specific and cite file paths. Do NOT fix anything; report only. Make section 3 an explicit
+numbered list so each finding can be checked individually.
+
+Write your full report to your run's output.md before you stop. If writing is blocked, print
+the full report to your terminal so it is captured.

@@ -1,0 +1,100 @@
+{
+  "project": "taskflow-api",
+  "base_verdict_before_injection": "ON TRACK",
+  "injected_verdict": "SIGNIFICANT DRIFT",
+  "n_drifts": 12,
+  "drifts": [
+    {
+      "id": "TF-D1", "class": "numeric/config", "tier": "obvious",
+      "drift_in": "src/config.ts",
+      "injected": "defaultPageSize = 50",
+      "truth": "default page size = 20 (PRD R4; ARCHITECTURE config table + GET /tasks params; README listing; IMPLEMENTATION_PLAN Phase 3; CONTEXT)",
+      "detect": "code config default page size (50) contradicts the documented default of 20"
+    },
+    {
+      "id": "TF-D2", "class": "numeric/config", "tier": "subtle",
+      "drift_in": "src/config.ts",
+      "injected": "bcryptCost = 8",
+      "truth": "bcrypt cost factor = 12 (PRD R1; ARCHITECTURE users table + auth model; IMPLEMENTATION_PLAN Phases 1 & 2)",
+      "detect": "code bcrypt cost (8) contradicts the documented cost factor 12"
+    },
+    {
+      "id": "TF-D3", "class": "numeric/config", "tier": "moderate",
+      "drift_in": "src/config.ts",
+      "injected": "refreshTokenTtl = '30d'",
+      "truth": "refresh-token TTL = 7d (PRD R2; ARCHITECTURE auth model + config table; README; IMPLEMENTATION_PLAN Phase 2; CONTEXT)",
+      "detect": "code refresh TTL (30d) contradicts the documented 7d"
+    },
+    {
+      "id": "TF-D4", "class": "plan/status-vs-code (missing feature)", "tier": "moderate",
+      "drift_in": "src/routes/tasks.ts (PATCH handler)",
+      "injected": "the completion-webhook call (and its import) were removed from PATCH; src/services/webhook.ts is now orphaned/never called",
+      "truth": "R7: transition into 'done' MUST fire the task-completion webhook (PRD R7; ARCHITECTURE webhook flow; README webhook section; IMPLEMENTATION_PLAN Phase 4; CONTEXT). The code no longer implements it.",
+      "detect": "docs claim a completion webhook fires on ->done, but tasks.ts never calls the webhook service (webhook.ts is dead code)"
+    },
+    {
+      "id": "TF-D5", "class": "enum drift (code vs schema/types/brief)", "tier": "subtle",
+      "drift_in": "src/routes/tasks.ts (STATUSES)",
+      "injected": "STATUSES = ['todo','done'] (dropped 'in_progress')",
+      "truth": "task status enum = todo | in_progress | done (PRD R6; src/types.ts TaskStatus; src/schema.sql tasks.status ENUM). The route now rejects the valid 'in_progress' status.",
+      "detect": "tasks.ts STATUSES is missing 'in_progress', which the schema, types, and PRD all include"
+    },
+    {
+      "id": "TF-D6", "class": "doc-vs-code (response shape)", "tier": "moderate",
+      "drift_in": "src/routes/tasks.ts (GET / response)",
+      "injected": "GET /tasks returns { items: [...], page, page_size, total }",
+      "truth": "list response envelope is { data, page, page_size, total } (ARCHITECTURE GET /tasks; README listing JSON; IMPLEMENTATION_PLAN Phase 3)",
+      "detect": "code returns an 'items' key but every doc specifies a 'data' key for the list envelope"
+    },
+    {
+      "id": "TF-D7", "class": "brief-vs-arch (+ arch-vs-code)", "tier": "moderate",
+      "drift_in": "ARCHITECTURE.md (Key config values table)",
+      "injected": "Rate limit max = 250 requests / window / IP",
+      "truth": "rate limit = 100 requests / 15-min window (PRD R8; src/config.ts rateLimit.max=100; README; IMPLEMENTATION_PLAN Phase 4; CONTEXT)",
+      "detect": "ARCHITECTURE says 250 req/window while the PRD, code, README, plan, and CONTEXT all say 100"
+    },
+    {
+      "id": "TF-D8", "class": "stale-status (claims unbuilt feature)", "tier": "obvious",
+      "drift_in": "CONTEXT.md (Current state, Phase 2 line)",
+      "injected": "claims Phase 2 shipped a 'token refresh endpoint'",
+      "truth": "there is no refresh endpoint: src/routes/auth.ts exposes only POST /auth/register and POST /auth/login; PRD R2 explicitly marks refresh out of v1 endpoint scope; CONTEXT's own 'What's next' still lists POST /auth/refresh as a future candidate (internal contradiction)",
+      "detect": "CONTEXT claims a shipped token-refresh endpoint that does not exist in the code (and contradicts its own roadmap)"
+    },
+    {
+      "id": "TF-D9", "class": "arch-vs-plan (plan claims component absent from arch/code)", "tier": "moderate",
+      "drift_in": "IMPLEMENTATION_PLAN.md (Phase 4 acceptance criteria)",
+      "injected": "adds a deliverable: 'Task list responses are cached in Redis with a 60s TTL (cache-aside)'",
+      "truth": "there is no Redis / caching anywhere — ARCHITECTURE stack is Express + MySQL only, no cache layer in src/, and package.json has no redis dependency",
+      "detect": "the plan introduces a Redis caching deliverable that the architecture and code never realize"
+    },
+    {
+      "id": "TF-D10", "class": "numeric (doc vs everything)", "tier": "subtle",
+      "drift_in": "README.md (Auth section)",
+      "injected": "'The access token expires after 30 minutes'",
+      "truth": "access-token TTL = 15 minutes / '15m' (PRD R2; ARCHITECTURE; src/config.ts accessTokenTtl; IMPLEMENTATION_PLAN Phase 2; CONTEXT)",
+      "detect": "README says access tokens last 30 minutes; everywhere else (incl. code) says 15 minutes"
+    },
+    {
+      "id": "TF-D11", "class": "schema-vs-code/arch", "tier": "subtle",
+      "drift_in": "src/schema.sql (tasks table)",
+      "injected": "tasks column renamed to 'details'",
+      "truth": "the column is 'description' (ARCHITECTURE data model tasks table; src/types.ts Task.description; src/routes/tasks.ts INSERT/SELECT use description)",
+      "detect": "schema.sql calls the column 'details' while the type, architecture, and route code all use 'description' (the INSERT would fail)"
+    },
+    {
+      "id": "TF-D12", "class": "endpoint-behavior (code vs brief/arch)", "tier": "moderate",
+      "drift_in": "src/index.ts (/health handler)",
+      "injected": "GET /health returns { status: 'healthy' }",
+      "truth": "GET /health returns { status: 'ok' } (PRD R9; ARCHITECTURE API surface; README; IMPLEMENTATION_PLAN Phase 4; CONTEXT)",
+      "detect": "health endpoint returns {status:'healthy'} but the documented contract is {status:'ok'}"
+    }
+  ],
+  "coherent_controls": [
+    { "id": "TF-C1", "fact": "HTTP port = 4000", "coherent_across": "config.ts, ARCHITECTURE, README, CONTEXT, PLAN", "why_tempting": "several nearby config numbers WERE drifted; the port was not — flagging it is a false positive" },
+    { "id": "TF-C2", "fact": "max page size = 100", "coherent_across": "config.ts, ARCHITECTURE, README, PLAN", "why_tempting": "the default page size drifted (D1); the max did not" },
+    { "id": "TF-C3", "fact": "priority enum = low|medium|high, default medium", "coherent_across": "types.ts, schema.sql, routes PRIORITIES, PRD R6, README", "why_tempting": "the status enum drifted (D5); the parallel priority enum is intact" },
+    { "id": "TF-C4", "fact": "rate-limit window = 15 min = 900000 ms", "coherent_across": "config.ts (15*60*1000), ARCHITECTURE, README", "why_tempting": "looks like a magic number; it is correct and consistent" },
+    { "id": "TF-C5", "fact": "MySQL pool connectionLimit = 10", "coherent_across": "config.ts, db.ts, ARCHITECTURE", "why_tempting": "an unusual-looking constant that is in fact consistent" },
+    { "id": "TF-C6", "fact": "JWT access payload = { sub: userId }, HS256", "coherent_across": "auth/jwt.ts, ARCHITECTURE auth model", "why_tempting": "auth area has a real drift (D2, D3) so the signing details invite over-flagging" }
+  ]
+}

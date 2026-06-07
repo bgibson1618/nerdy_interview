@@ -1,0 +1,20 @@
+Three routes exist and only three: `/` -> OverviewView, `/metrics/:metricId` -> MetricDetailView, `/settings` -> SettingsView; defined in src/App.tsx, documented in ARCHITECTURE.md route map, README Views table, and PRD R1.
+Vite dev server port = 5173; set in vite.config.ts (server.port), stated in README ('http://localhost:5173') and ARCHITECTURE.md Stack.
+config.pollIntervalMs = 30000 (30s); defined in src/config.ts, used in src/hooks/usePolling.ts, stated in PRD R4, ARCHITECTURE.md polling section, README config table, and CONTEXT.md.
+config.defaultDateRange = '7d' (last 7 days); in src/config.ts, used by MetricDetailView and SettingsView, stated in PRD R5, ARCHITECTURE.md, README, CONTEXT.md.
+config.pageSize = 25; in src/config.ts, used by src/components/MetricGrid.tsx pagination, stated in PRD R2, ARCHITECTURE.md, README Views/config, CONTEXT.md.
+config.apiBaseUrl = 'https://api.pulse.example.com/v1'; in src/config.ts, used by src/api/client.ts, stated in ARCHITECTURE.md API surface, README, CONTEXT.md.
+Four API endpoints: GET /metrics, GET /metrics/:id, GET /metrics/:id/series?range=, GET /me; wrapped in src/api/metrics.ts (listMetrics/getMetric/getMetricSeries/getProfile), documented in ARCHITECTURE.md API table and README API table.
+DateRange union = '24h' | '7d' | '30d'; declared in src/types.ts, enumerated as RANGES in src/views/SettingsView.tsx, stated in PRD R5, ARCHITECTURE.md, README.
+Feature flag enableExport defaults to false; in src/config.ts flags, gates the Download CSV button in src/views/MetricDetailView.tsx, stated in PRD R7, ARCHITECTURE.md flags table, README, CONTEXT.md.
+Feature flag enableDarkMode defaults to true; in src/config.ts flags, gates the theme toggle in src/views/SettingsView.tsx, stated in PRD R7, ARCHITECTURE.md, README, CONTEXT.md.
+OAuth authorize URL = https://auth.pulse.example.com/oauth/authorize, client_id = pulse-dashboard-web, redirect_uri = http://localhost:5173/auth/callback, scope = metrics:read; constants in src/auth/oauth.ts, documented in ARCHITECTURE.md auth model and README Authentication.
+Session stored in sessionStorage under key 'pulse.session' as JSON { accessToken, expiresAt }; SESSION_KEY in src/auth/oauth.ts, read by getSession() and api/client.ts bearer attach, stated in ARCHITECTURE.md auth flow, README, IMPLEMENTATION_PLAN Phase 3.
+Bearer auth: every request carries Authorization: Bearer <accessToken>; built in src/api/client.ts from getSession(), stated in ARCHITECTURE.md API surface and README API table.
+Polling pauses when tab hidden and refetches on visibilitychange to visible; implemented in src/hooks/usePolling.ts, stated in PRD R4, ARCHITECTURE.md polling layer, CONTEXT.md.
+ApiError thrown on non-2xx; defined in src/api/client.ts, surfaced as ErrorState with Retry in OverviewView/MetricDetailView, stated in PRD R9, ARCHITECTURE.md error handling, IMPLEMENTATION_PLAN Phase 6.
+Metric type fields = id, name, unit, latestValue; MetricPoint fields = timestamp, value; declared in src/types.ts, documented in ARCHITECTURE.md data model tables.
+All six implementation phases marked DONE; IMPLEMENTATION_PLAN.md status section and CONTEXT.md 'Feature-complete' both assert R1-R9 satisfied.
+Shared components MetricCard, MetricGrid, LineChart, ErrorState exist under src/components/, listed in ARCHITECTURE.md component map and mapped in IMPLEMENTATION_PLAN phases 4-6.
+RequireAuth wraps all three routes in src/App.tsx and redirects unauthenticated users via beginLogin(location.pathname) preserving intended path; stated in PRD R6, ARCHITECTURE.md auth flow, IMPLEMENTATION_PLAN Phase 3.
+npm scripts: dev (vite, :5173), build (tsc && vite build), preview; defined in package.json, documented in README Scripts section.

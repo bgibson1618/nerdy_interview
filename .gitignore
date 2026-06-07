@@ -8,3 +8,6 @@ work/
 # Node sample-app build artifacts
 node_modules/
 dist/
+
+# drift-detection experiment: transient reviewer runs
+experiments/drift_corpus/_harness/runs/
