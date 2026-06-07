@@ -83,6 +83,18 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       agent shipped `/sanity panel`. (d) **A2A leaderless work-division** pattern + live 2-agent demo. (e)
       **Deepened `stack-interview-qa.md`** (all 9 topics uniform depth, fact-checked). See the Open-threads
       checklist below for detail + the per-item paths.
+- [x] **Phase 9 — roster polish + the last two A2A patterns** (this session; user studying, working
+      autonomously). (a) **Roster polish → plugin v0.4.0** (local `98e91ab`): verifier default backend
+      **→ claude** (codex stays the bounded-review override; evidence #1/#12–15/#20 — **flag for user
+      review, behavioral default change**); opt-in **`--emit-artifact`** generation posture on `run` +
+      `team` (read-only, emit-as-final-message; guarded vs `--interactive`/`--peers`); **clean interactive
+      transcripts** (`transcript` cmd + auto-gen on `stop`, ANSI/CR strip). All three **adversarially
+      reviewed by a Workflow (17 findings, all fixed)**; 46/46 A2A tests still green. (b) **EXPERIMENTS
+      #21 leader election** — 28/30; replication exposed a liveness bug (fixed) + a **transport ceiling at
+      N=7 failover** (fork-per-message storm/jitter); N≤5 + N=7-steady perfect. (c) **EXPERIMENTS #22
+      shared blackboard / stigmergy** — **20/20**, clean (no ceiling; low-frequency). Live-agent layers
+      for both **deferred to the demo-strategy discussion** the user wants on return. See `experiments/
+      a2a_patterns/{leader_election,shared_blackboard}/`.
 
 ## Open threads to pull next (user will pick one after /compact)
 - [x] **Harden the A2A primitive** — DONE (plugin local commit `090c877`, **v0.3.0**). Typed JSON
@@ -118,24 +130,33 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   SQL Server, OAuth, REST, Webhooks) brought to the gRPC/GraphQL depth (primer + 6 graduated Q&A w/ the
   topic's gotcha + one-liners), 267→539 lines. 7-writer fan-out + per-section fact-check polish (caught
   PKCE=BASE64URL(SHA256(verifier)), InnoDB MVCC snapshot at first read, RFC 9457, etc.). Plan link updated.
-- **Other A2A patterns (remaining):** leader election, shared blackboard (never run — next-time candidates).
+- [x] **A2A pattern: leaderless leader election** — DONE (EXPERIMENTS #21; `experiments/a2a_patterns/
+  leader_election/`). 28/30; liveness bug found+fixed; N=7-failover transport ceiling characterized.
+- [x] **A2A pattern: shared blackboard / stigmergy** — DONE (EXPERIMENTS #22; `.../shared_blackboard/`).
+  20/20, zero violations; the clean, ceiling-free pattern.
+- **Live-agent demo layers** (both A2A patterns) — **deferred by plan** to the demo-strategy discussion
+  the user wants on return ("best way to demo the results of all our experiments"). Ready to stand up.
 - **Roster Config UI** (USER'S idea, PARKED — don't start unprompted): a configurator that lets the user set
   preferred agents/models/prompts per task → emits a **manifest JSON** the orchestrator uses to spawn the
-  `team`. User is still shaping it; revisit when they bring it back. (Overlaps the roster "per-instance team
-  task config" open item.)
+  `team`. User wants to **discuss this on return**. (Overlaps the roster "per-instance team task config" item.)
 - **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team` (see Config UI
-  above); default `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture;
-  interactive durable transcript. (A2A slash-command docs — DONE in 090c877.)
+  above — still open). DONE this session in v0.4.0 (`98e91ab`): ~~default `verifier`→claude~~ (now claude;
+  **flag: behavioral change, user review**), ~~standard "emit artifact" posture~~ (`--emit-artifact`),
+  ~~interactive durable transcript~~ (`transcript` cmd + auto on `stop`). (A2A slash-command docs — DONE in 090c877.)
 
-## Resume note (after /compact — written 2026-06-07, ~end of a long session)
+## Resume note (updated 2026-06-07, end of the autonomous "user studying" session)
 Nothing live depends on transient state: **no agents running (only the Orchestrator window)**,
 `work/agents/` empty, working tree clean & pushed. On resume: **stay in orchestrator mode + window 0
-named `Orchestrator`** (already set), re-read live `git`/`tmux` state, then **ask which thread to pull**
-(menu above) — don't auto-start one. No agreed "next thread" pending; the big arcs (A2A hardening,
-drift experiment, work-division, stack-qa deepening, /sanity panel) are all CLOSED this session.
+named `Orchestrator`**, re-read live `git`/`tmux` state.
+**Two things the user explicitly wants to do on return** (don't auto-start; raise them):
+1. **Discuss the Roster Config UI** idea (parked configurator → manifest JSON).
+2. **Decide the demo strategy** for "the results of all our experiments" — the A2A live-agent demo
+   layers (#21/#22) are built-and-ready-but-deferred for exactly this.
+Also **flag for review:** the v0.4.0 **verifier default → claude** is a behavioral change (evidence-backed
+but worth a conscious sign-off). Everything else this session is CLOSED.
 
-- **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`,
-  was `f3b31f9` at handoff); **plugin `agent_roster` is LOCAL-ONLY at `090c877` (v0.3.0) — commit, do NOT
+- **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`);
+  **plugin `agent_roster` is LOCAL-ONLY at `98e91ab` (v0.4.0) — commit, do NOT
   push the plugin repo** (standing user constraint).
 - **Gemini gotcha (important):** gemini limits are **per-model**. The CLI default (pro) free-tier window
   exhausts fast ("exhausted your capacity on this model"); **use `--model gemini-3-flash-preview`** (user

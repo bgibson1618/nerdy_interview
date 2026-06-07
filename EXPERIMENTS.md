@@ -9,6 +9,51 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #22 — A2A pattern: shared blackboard / stigmergy (2026-06-07)
+**probe:** can K agents collaboratively solve a decomposable problem through a shared structured
+store **with no orchestrator and no direct messages** (pure stigmergy), holding safety under
+contention? Third of the A2A self-organizing patterns (after work-division + leader-election).
+**setup:** ground-truthed, replicated, pre-registered. `blackboard.sh` = a `flock`-atomic
+multi-level JSONL store (Level-0 shards → Level-1 partials → one Level-2 synthesis gated on *all*
+shards done); `bb_worker.sh` knowledge sources watch the board and contribute opportunistically.
+Problem: sum + per-category breakdown of a random transaction set split into S shards; true totals
+computed independently. `bb_stress.sh` ran (S,K) ∈ {(6,3),(10,4),(12,6)} + a speed-skew config ×
+5 trials. Full writeup: `experiments/a2a_patterns/shared_blackboard/{PREREG,RESULTS}.md`.
+**result: 20/20, zero violations.** No lost contributions, no double-work, **synthesis produced
+exactly once** (atomic claim on the gated slot, despite every idle worker racing for it), board
+final == ground truth every trial, and the synthesis claim was always *after* the last shard
+completed (genuine stigmergic triggering, no message exchanged). Emergent load-balance fell out of
+the atomic claim: equal-speed workers split evenly; speed-skewed workers tilted **3/3/2/2** to the
+faster ones, every trial. **action:** the cleanest of the three patterns — its only correctness
+requirement is the **atomic claim** the whole roster already rests on, plus a level + completeness
+gate. Unlike #21 it has **no scale ceiling**: it is low-frequency (touch the board a few times,
+not many times/sec), so it never stresses the transport's per-message cost. A `board`/`blackboard`
+subcommand is a natural graduation candidate.
+
+## #21 — A2A pattern: leaderless leader election (2026-06-07)
+**probe:** can N peers elect a single coordinator over the hardened A2A primitive (`send … all`
+broadcast + `recv`) with **no orchestrator** — agreement, no split-brain, correct failover — and
+does it transfer across scale? A correct election is also a live test of whether the file-backed
+inbox delivers **reliable broadcast**. **setup:** ground-truthed, replicated, pre-registered.
+`election.sh` = a term-based, highest-id-wins node loop (messages only via the roster CLI);
+`run_election.sh` fabricates an N-node run dir with **shuffled** ids and checks the trace vs
+ground truth (leader = max id; after a kill = max survivor); `stress.sh` ran N∈{3,5,7} ×
+{steady, leader-kill} × 5 trials. Full writeup: `experiments/a2a_patterns/leader_election/{PREREG,RESULTS}.md`.
+**result: 28/30 — and the journey IS the finding.** Replication first exposed a real **liveness
+bug** (a non-max candidate that missed the single `COORDINATOR` broadcast stranded forever — no
+candidate-side retry); fixed with re-solicit + leader re-announce (no term churn). It then exposed
+a **substrate ceiling at N=7**: the node loop spins as fast as messages arrive, so an ungated
+heartbeat became a `send … all` **storm**, each message a forked `bash`+`jq`+`flock`+`inotifywait`
+— at N=7 this starved the loops (a leader once declared **6.5 s late**), so timing-based
+transitions misfired (late declaration → premature backstop term-bump → transient split-brain).
+Gating the heartbeat + scaling the timing budget with N made **N=3/N=5 perfect (incl. failover,
+20/20) and N=7 steady perfect (5/5)**; only **N=7 *failover* stayed soft (3/5)** — death-detection
+stacked on a second election at peak load, bursty jitter the budget can't always cover. **action:**
+the protocol logic is sound; the ceiling is the **transport** (a CLI fork per message), not the
+algorithm. Use leaderless election freely through N=5 (and N=7 steady); N=7-with-failover is the
+edge of this transport's envelope. To lift it, change the transport (persistent/batched delivery),
+not the protocol. Contrast #22: low-frequency stigmergy has no such ceiling.
+
 ## #20 — Drift detection: single reviewer vs cross-backend panel for /sanity (2026-06-07)
 **probe:** does a multi-reviewer panel beat a single reviewer at the doc↔code coherence task
 `/sanity` actually does, does backend *diversity* help beyond more reviewers, and does the #12
