@@ -51,9 +51,11 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       research). Ground-truthed backend battery → `experiments/BATTERY_RESULTS.md` (+ PREREG, scores,
       targets). EXPERIMENTS #12–#15. Decisions: `/sanity-check` → 2-backend panel (claude+codex);
       default verifier → claude (codex for bounded, panel second); gemini → research+judging, **not**
-      the security gate (repeatable authz/exposure blind spot); peer-to-peer agent messaging works
-      with scaffolding but has no first-class primitive. `work/exp/` is gitignored; durable copies
-      live in `experiments/`.
+      the security gate (repeatable authz/exposure blind spot). Follow-ups (EXPERIMENTS #16):
+      cry-wolf re-run on a truly-clean target → FP≈0 (high precision confirmed); **A2A messaging
+      primitive built** in the plugin (local commit `d49527e`: `peers`/`send`/`recv --wait` +
+      `run-role --peers`), demoed peer-to-peer with no relay. `work/exp/` is gitignored; durable
+      copies live in `experiments/`.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides

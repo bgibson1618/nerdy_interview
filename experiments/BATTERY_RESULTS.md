@@ -45,7 +45,7 @@ exact `note` command, and a **poll-the-inbox** convention, and run them in a mod
 execute Bash unattended (`bypassPermissions`). What's **missing** is a first-class A2A primitive:
 peers/`note` are invisible in the default prompt, there's no delivery/notification (poll only),
 and no addressing/await. **Recommendation:** if you want routine A2A, add a real primitive;
-today it's hub-and-spoke by default and peer-to-peer only when you wire it.
+today it's hub-and-spoke by default and peer-to-peer only when you wire it. **(Now built — see Follow-ups.)**
 
 ---
 
@@ -99,12 +99,44 @@ no relay, correct answer in ~8s. Enabled by: peer label + exact `note` command +
 
 ---
 
+## Follow-ups
+
+### Cry-wolf, resolved (real false-positive rate)
+Re-ran the precision test against a **genuinely clean** read-only target
+(`work/exp/targets/catalog_clean.ts` — parameterized queries, async-rejection wrapper,
+input validation, auth-scoping, projections, public-by-design reads), 3 backends × 3 reps:
+
+| backend | result |
+|---|---|
+| codex  | "NO DEFECTS FOUND" ×3 → **FP = 0** |
+| gemini | "NO DEFECTS FOUND" ×3 → **FP = 0** |
+| claude | "NO DEFECTS FOUND" ×2; 1 MINOR (deep-pagination OFFSET / `>MAX_SAFE_INTEGER` precision) — a defensible hardening nit, not a hallucination |
+
+**False-positive rate ≈ 0.** Backends correctly recognized clean code as clean. Combined with
+Exp 1 (where they found every real bug and flagged nothing fixed), this confirms **high precision**
+across all three — the Exp-1 "clean" confound is resolved.
+
+### A2A messaging primitive — built & demoed
+Implemented in the plugin (commit `d49527e`, local): `agent-roster peers` (discovery),
+`send --from` (attributed delivery, logs a `message_sent` event), and `recv [--wait] [--timeout]
+[--peek]` (returns only NEW messages via a per-inbox read cursor; `--wait` blocks until a peer
+messages you). `run-role --peers` injects a "Peer messaging" block (the agent's label, run-id,
+and exact commands) so agents coordinate directly — **opt-in, off by default**.
+
+Demo: two agents solved the split-secret task via `peers → send → recv --wait`, **no orchestrator
+relay and no hand-rolled poll loop** (the Exp-4 agents had to spell out the `note` path and write
+an `until [ -s ]` loop; here discovery + a real blocking receive are first-class). Round-trip ~8s,
+correct answer. Still missing for "production" A2A: addressing beyond a shared run, delivery
+push/notification (it's still cursor-poll under `--wait`), and multi-peer fan-in/out semantics.
+
+---
+
 ## Caveats (honest limits)
 - Ground truth is **one author's** bug ledger per file; "is this finding a match" was scored by
   the orchestrator against a pre-registered list (rubric in PREREG). 3 reps/cell estimates but
   doesn't eliminate variance.
-- The cry-wolf metric is **confounded** (clean file wasn't clean) — reported as a qualitative
-  precision finding, not a clean FP rate. A truly-clean re-run would quantify it.
+- ~~The cry-wolf metric was confounded (clean file wasn't clean)~~ → **resolved** in Follow-ups
+  with a truly-clean target: FP ≈ 0 across all three backends.
 - Exp 3 quality "winner" is judge-consensus, not an independent oracle; self-preference is the
   objective sub-metric. Domains tested: SQL, async (plus Phase-4 JS/TS/React).
 - All single-vendor (Anthropic/OpenAI/Google) latest models as wired in the roster on this date.

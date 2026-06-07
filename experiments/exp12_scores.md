@@ -30,3 +30,9 @@
 - ALPHA `note`d SECRET=7 → beta inbox (02:57:14); BETA polled, computed, `note`d ANSWER=40 → alpha inbox (02:57:22, +8s); both reported FINAL: 40 (correct). NO orchestrator relay.
 - Enablers: peer label + exact `note` command + poll-the-inbox convention in the prompt; bypassPermissions so they run bash unattended.
 - Gaps: no first-class A2A primitive — agents hand-rolled the inbox poll; peers/`note` are invisible in the default prompt; no delivery/notification (poll only).
+
+## Cry-wolf RE-RUN (truly-clean read-only target catalog_clean.ts; 3 backends × 3 reps)
+- codex: NO DEFECTS FOUND ×3 → FP=0
+- gemini: NO DEFECTS FOUND ×3 → FP=0
+- claude: NO DEFECTS FOUND ×2; 1 MINOR (deep-pagination OFFSET / >MAX_SAFE_INTEGER precision) — a defensible hardening nit, not a hallucination.
+- Verdict: false-positive rate ≈ 0. Backends correctly recognized clean code as clean. Confounded Exp-1 cry-wolf result is now resolved: high precision confirmed.

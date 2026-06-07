@@ -9,6 +9,10 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #16 — Cry-wolf resolved + A2A primitive built (2026-06-06)
+- **Cry-wolf re-run** on a *genuinely* clean target (read-only, async-rejection wrapper, validated, auth-scoped): **FP ≈ 0** — codex & gemini "NO DEFECTS FOUND" ×3; claude clean ×2 + one defensible hardening nit. Resolves the Exp-1 confound (the earlier "clean" file had real bugs); high precision confirmed across all three backends.
+- **A2A messaging primitive built** in the plugin (local commit `d49527e`): `peers` (discovery), `send --from` (attributed, logs `message_sent`), `recv [--wait] [--peek]` (new-messages-only via a read cursor; `--wait` blocks), and `run-role --peers` (opt-in prompt block exposing label/run-id/commands). **Demo:** two agents coordinated peer-to-peer via `peers → send → recv --wait` — no relay, no hand-rolled poll loop (cf. #14). Details: `experiments/BATTERY_RESULTS.md` "Follow-ups".
+
 ## #12–#15 — Backend decision battery (ground-truthed, replicated, 2026-06-06)
 Full writeup + recommendations: [`experiments/BATTERY_RESULTS.md`](experiments/BATTERY_RESULTS.md). Pre-reg: `experiments/PREREG.md`. Headlines:
 
