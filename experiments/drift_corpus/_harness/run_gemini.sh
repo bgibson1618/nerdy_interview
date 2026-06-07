@@ -12,7 +12,7 @@ RUNS="$HERE/runs"; RESULTS="$HERE/results"
 mkdir -p "$RUNS" "$RESULTS"
 SPACING="${GEMINI_SPACING:-25}"     # seconds between successful cells
 MAXRETRY="${GEMINI_RETRY:-5}"
-MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"   # default-pro quota is small; flash has its own larger window
+MODEL="${GEMINI_MODEL:-gemini-3-flash-preview}"   # current flash; per-model quota with headroom
 
 terminal_st() { case "$1" in done|done-no-output|failed|stopped) return 0;; *) return 1;; esac; }
 

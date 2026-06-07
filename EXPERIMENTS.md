@@ -9,6 +9,26 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #20 — Drift detection: single reviewer vs cross-backend panel for /sanity (2026-06-07)
+**probe:** does a multi-reviewer panel beat a single reviewer at the doc↔code coherence task
+`/sanity` actually does, does backend *diversity* help beyond more reviewers, and does the #12
+bug-finding ranking transfer? **setup:** ground-truthed, blinded, pre-registered. 4 synthetic
+projects (2 easy value-drift, 2 hard behavioral-drift) with 12–13 orchestrator-injected drifts +
+~7 coherent controls each; 5 conditions × 2 reps = **40 roster reviews** (single claude/codex/
+gemini-3-flash-preview, P-same 3×claude, P-cross cross-backend); blinded claude judge scored every
+report vs the answer key. Dogfooded the v0.3 roster at scale. Full writeup:
+`experiments/drift_detection_results.md` (+ `_prereg`, `drift_corpus/`). **result:** easy round =
+recall ceiling (1.00 all singles). Hard round broke it: single recall **codex 0.96 > claude 0.90 >
+gemini 0.87** — the #12 ranking **REVERSES** (codex best + most precise, 0 FP, for drift). Backends
+have *different* blind spots: claude systematically missed atomicity (ING-D7 0/6), codex covered it
+(2/2) → P-cross **union** 0.96 > P-same union 0.92 > single claude 0.90 (diversity > redundancy, but
++0.04, below the pre-registered +0.10 bar). A *removed guard* (ING-D10) was a **universal** blind
+spot: 0/10 — no backend or panel catches an absence with no code trace. Consensus aggregation cuts
+FP but discards the cross-backend rescues (wrong for this task). **action:** recommend `/sanity`
+**keep its single-codex default** (validated; switching to claude per #12 would've been wrong); use a
+cross-backend **union** panel only as insurance (lifts a weak backend to codex-level, at an FP cost);
+pair `/sanity` with executable checks for absence-drifts (atomicity/guards) no reviewer config catches.
+
 ## #19 — Herding / Asch conformity: does truth survive a confident majority? (2026-06-07)
 - **Probe:** the unverifiable herding test #18 said was needed — does a lone agent cave to a confident MAJORITY when there's no oracle? Battery designed + adversarially vetted by a **Workflow** (20 candidates → 12 vetted → 6: four objective misconceptions [Venus-hottest, bats-blind, tongue-map, months≥28] + two pure-subjective [getUser/fetchUser, 2-vs-4-space]).
 - **Setup:** between-subject Asch; 6 Q × 3 backends (claude/codex/gemini on the roster) × {baseline, wrong-majority}; majority = 3 unanimous reasoned confederates delivered in-prompt; "own knowledge, no tools". **Phase 2** = maximal pressure (senior-expert authority + unanimity + "you're the lone dissenter, reconsider"). Pre-reg + full results: `experiments/herding_{prereg,results}.md`.

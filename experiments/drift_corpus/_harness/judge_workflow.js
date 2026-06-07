@@ -38,16 +38,7 @@ const SCHEMA = {
   },
 }
 
-const DEFAULT_ITEMS = [
-  { bid: 'R001', project: 'pulse-dashboard' }, { bid: 'R002', project: 'pulse-dashboard' },
-  { bid: 'R003', project: 'pulse-dashboard' }, { bid: 'R004', project: 'pulse-dashboard' },
-  { bid: 'R005', project: 'taskflow-api' }, { bid: 'R006', project: 'taskflow-api' },
-  { bid: 'R007', project: 'pulse-dashboard' }, { bid: 'R008', project: 'taskflow-api' },
-  { bid: 'R009', project: 'pulse-dashboard' }, { bid: 'R010', project: 'taskflow-api' },
-  { bid: 'R011', project: 'pulse-dashboard' }, { bid: 'R012', project: 'taskflow-api' },
-  { bid: 'R013', project: 'taskflow-api' }, { bid: 'R014', project: 'taskflow-api' },
-  { bid: 'R015', project: 'pulse-dashboard' }, { bid: 'R016', project: 'taskflow-api' },
-]
+const DEFAULT_ITEMS = [{ bid: 'R001', project: 'ledger-api' }, { bid: 'R002', project: 'ingestd' }, { bid: 'R003', project: 'ledger-api' }, { bid: 'R004', project: 'pulse-dashboard' }, { bid: 'R005', project: 'ledger-api' }, { bid: 'R006', project: 'pulse-dashboard' }, { bid: 'R007', project: 'ingestd' }, { bid: 'R008', project: 'pulse-dashboard' }, { bid: 'R009', project: 'ingestd' }, { bid: 'R010', project: 'pulse-dashboard' }, { bid: 'R011', project: 'taskflow-api' }, { bid: 'R012', project: 'ledger-api' }, { bid: 'R013', project: 'ledger-api' }, { bid: 'R014', project: 'pulse-dashboard' }, { bid: 'R015', project: 'pulse-dashboard' }, { bid: 'R016', project: 'taskflow-api' }, { bid: 'R017', project: 'ingestd' }, { bid: 'R018', project: 'ledger-api' }, { bid: 'R019', project: 'ingestd' }, { bid: 'R020', project: 'ingestd' }, { bid: 'R021', project: 'ledger-api' }, { bid: 'R022', project: 'ledger-api' }, { bid: 'R023', project: 'pulse-dashboard' }, { bid: 'R024', project: 'taskflow-api' }, { bid: 'R025', project: 'taskflow-api' }, { bid: 'R026', project: 'taskflow-api' }, { bid: 'R027', project: 'pulse-dashboard' }, { bid: 'R028', project: 'ingestd' }, { bid: 'R029', project: 'taskflow-api' }, { bid: 'R030', project: 'ingestd' }, { bid: 'R031', project: 'pulse-dashboard' }, { bid: 'R032', project: 'ledger-api' }, { bid: 'R033', project: 'taskflow-api' }, { bid: 'R034', project: 'taskflow-api' }, { bid: 'R035', project: 'ingestd' }, { bid: 'R036', project: 'ingestd' }, { bid: 'R037', project: 'taskflow-api' }, { bid: 'R038', project: 'pulse-dashboard' }, { bid: 'R039', project: 'ledger-api' }, { bid: 'R040', project: 'taskflow-api' }]
 let items = DEFAULT_ITEMS
 if (Array.isArray(args) && args.length) items = args
 else if (args && typeof args === 'object' && Array.isArray(args.items) && args.items.length) items = args.items

@@ -12,3 +12,4 @@ dist/
 # drift-detection experiment: transient reviewer runs
 experiments/drift_corpus/_harness/runs/
 experiments/drift_corpus/_harness/judge_inbox/R*.md
+experiments/drift_corpus/_harness/*.log

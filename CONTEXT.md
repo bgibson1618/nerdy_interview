@@ -85,14 +85,21 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   `tests/a2a-hardening.sh` (**46 passing**). Verify pass caught real bugs the green tests missed
   (numeric-flag `set -u` crash, dash-leading bodies, char-vs-byte cap → silent loss, `warn`→stdout
   polluting gather JSON, delivery-failure not isolated) — all fixed + regression-tested.
-- **Drift-detection experiment** (agreed NEXT): does cross-backend beat single-claude on the
-  *doc↔code coherence* task `/sanity` actually does? (#12 ranking was bug-finding, not coherence —
-  untested for this.) The hardened `gather` is now the natural primitive to run the multi-backend panel.
+- [x] **Drift-detection experiment** — DONE (EXPERIMENTS #20; `experiments/drift_detection_{prereg,results}.md`,
+  `drift_corpus/` + `_harness/`). 40 ground-truthed blinded roster reviews across 4 synthetic projects
+  (2 easy value-drift, 2 hard behavioral-drift; orchestrator-injected drifts + answer keys). Findings:
+  easy round hits a recall ceiling (1.00); hard behavioral round breaks it and **reverses the #12
+  ranking** — single recall **codex 0.96 > claude 0.90 > gemini 0.87**, codex also most precise (0 FP).
+  Backends have *different* blind spots (claude misses atomicity 0/6, codex covers it 2/2) so a
+  cross-backend **union** panel (0.96) > 3×claude union (0.92) > single claude (0.90) — diversity helps
+  but only +0.04 (below the pre-registered +0.10 bar); a *removed guard* was a universal 0/10 blind spot.
+  **Recommendation: keep `/sanity` single-codex (validated); union panel = insurance only; add executable
+  checks for absence-drifts.** Gemini ran on **gemini-3-flash-preview** (default-pro per-model quota was
+  exhausted; flash has headroom). NOTE: did NOT modify the real `/sanity` skill — recommendation only.
 - **Other A2A patterns** (never run): self-organizing work division, leader election, shared blackboard.
-- **`/sanity` skill upgrade** (`~/.claude/skills/sanity/`, standalone; currently 1 fresh-claude Task subagent):
-  the user is doing their own tweaks but may want help wiring a claude+codex review *panel* (per the
-  EXPERIMENTS #12 recommendation). No plugin dependency needed for an all-claude panel; codex needs a
-  shell-out (roster or direct `codex exec`).
+- **`/sanity` skill upgrade** (`~/.claude/skills/sanity/`, standalone; currently 1 fresh-codex roster reviewer):
+  #20 VALIDATES the current single-codex default. If the user still wants a panel, wire a **union** (not
+  consensus) cross-backend gather; otherwise leave as-is. No change made yet.
 - **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team`; default
   `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture; interactive durable
   transcript. (A2A slash-command docs — now DONE in 090c877.)
