@@ -56,6 +56,27 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       primitive built** in the plugin (local commit `d49527e`: `peers`/`send`/`recv --wait` +
       `run-role --peers`), demoed peer-to-peer with no relay. `work/exp/` is gitignored; durable
       copies live in `experiments/`.
+- [x] **Phase 6 — A2A messaging thread** (current). Extended the primitive: `send all` broadcast
+      (plugin local commit `aa40d37`). Full primitive now = `peers` / `send [all] --from` /
+      `recv [--wait]` + `run-role --peers` (opt-in). Ran cross-backend agent **debate** experiments
+      (EXPERIMENTS #17, #18): 3 backends (claude/codex/gemini) debate JS questions via A2A, no
+      orchestrator. Findings: A2A scales to N=3; on **verifiable** questions, debate is robust to
+      misinformation (planted-wrong agents get corrected by runtime proof, or refuse to assert the
+      falsehood at all — truth won in every config; **no herding**). **OPEN / NEXT STEP the user is
+      weighing:** the real herding/sycophancy test needs an **unverifiable or subjective** claim
+      (no oracle to end the argument) + a confident-wrong majority, ideally with agents' code-exec
+      removed. User may also pull other A2A threads (work-division, leader election, blackboard) or
+      harden the primitive (structured envelopes, request/reply, push-not-poll). User is updating
+      the `/sanity` skill separately (own tweaks).
+
+## Resume note (after a restart)
+tmux + `/tmp` do NOT survive a reboot, but nothing live depends on them: no agents were running
+(only the Orchestrator window), and all results are committed (study repo pushed to GitHub; plugin
+committed locally at `aa40d37`). `/tmp/debate/*` + `/tmp/exp3/*` scaffolding is disposable
+(ground-truth was node-verified and the durable copies are in `experiments/`). On resume, re-assume
+orchestrator mode + rename window 0 to `Orchestrator`, then continue the A2A thread (or whatever the
+user directs). Watch the stray-write risk: debate agents ran with `bypassPermissions`/`workspace-write`
+and one left a scratch `test.js` in the repo root (removed) — prefer scoped permissions or clean up.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides
