@@ -47,6 +47,13 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       (~7/9 drills had a key error; consensus = reliable signal), #10 mixed-backend pipeline, #11 inbox/notes
       handshake (channel works). Tooling note: the "no-write, emit-as-message" prompt only *partly* suppresses
       claude's denied-write preamble — harvest still strips it.
+- [x] **Phase 5 — experimentation only** (no new study material; user pivoted to roster/backend
+      research). Ground-truthed backend battery → `experiments/BATTERY_RESULTS.md` (+ PREREG, scores,
+      targets). EXPERIMENTS #12–#15. Decisions: `/sanity-check` → 2-backend panel (claude+codex);
+      default verifier → claude (codex for bounded, panel second); gemini → research+judging, **not**
+      the security gate (repeatable authz/exposure blind spot); peer-to-peer agent messaging works
+      with scaffolding but has no first-class primitive. `work/exp/` is gitignored; durable copies
+      live in `experiments/`.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides

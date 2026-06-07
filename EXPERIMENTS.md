@@ -9,6 +9,14 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #12–#15 — Backend decision battery (ground-truthed, replicated, 2026-06-06)
+Full writeup + recommendations: [`experiments/BATTERY_RESULTS.md`](experiments/BATTERY_RESULTS.md). Pre-reg: `experiments/PREREG.md`. Headlines:
+
+- **#12 Verifier precision/recall** (10 planted bugs/file × 3 backends × 3 reps + a clean control + a claude-authored target). Recall: **claude 10.0 > codex 9.7 > gemini 7.7** (neutral); claude 9.7 / codex 8.3 / gemini 8.0 (claude-authored). Precision ~100% on buggy files (no hallucinated bugs). **Gemini has a repeatable blind spot** — missed `SELECT *` data-exposure + missing-authorization on every rep of both targets. **No author blind-spot at review time** (claude reviews claude-code as well as neutral). The "clean" control wasn't clean (I shipped ~4 real bugs as author); all 3 backends caught them, none cried wolf on the fixed code → second-reviewer value + high precision.
+- **#13 Judge calibration** (2 fresh blind bake-offs × 3 judges × 2 reps). **Unanimous winner per task** (claude=SQL, codex=async — even foreign judges ranked the winner above themselves). **Inter-judge agreement ~perfect; net self-preference ≈ 0** (self-#1 only when genuinely the consensus winner). Walks back the Phase-4 #8 codex-self-preference worry. Best *generator* is domain-dependent.
+- **#14 Autonomous peer-to-peer messaging — WORKS.** Two agents solved a split-secret task via `note`+inbox polling, **no orchestrator relay** (~8s round-trip), with scaffolding (peer label + `note` command + poll convention + `bypassPermissions`). Gap: no first-class A2A primitive (poll-only, peers invisible in default prompt).
+- **#15 Recommendations** (in BATTERY_RESULTS): `/sanity-check` → 2-backend panel (claude+codex), not a different-from-author single; default verifier → claude (codex strong for bounded, second in panel); gemini → research + judging + second opinion, **not** the security gate; A2A → add a primitive if you want it routine.
+
 ## #11 — Inbox/notes handshake: live mid-run Q&A (2026-06-06)
 - **Probe:** does the plugin's `note`/`questions`/`inbox` channel actually round-trip — an agent asks, the orchestrator answers mid-run, the agent consumes it and continues?
 - **Setup:** one interactive claude researcher (acceptEdits) told to write a blocking question to `questions.md`, wait, then read `inbox.md` once answered. Orchestrator answered via `agent-roster note`.
