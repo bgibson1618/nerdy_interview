@@ -4,3 +4,7 @@
 # This repo is dual-purpose (study material + agent_roster testbed); roster runs
 # write here and should never land in study-material history.
 work/
+
+# Node sample-app build artifacts
+node_modules/
+dist/

@@ -1,0 +1,22 @@
+{
+  "name": "nerdy-interview-app",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Small sample service used for code-review interview practice (Nerdy stack: TS/Express/MySQL).",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4"
+  }
+}
