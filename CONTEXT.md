@@ -75,6 +75,14 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       to v0.2.0 (plugin commit `b4882c8`). agent_roster now loads as a plugin via
       `/plugin marketplace add /home/bgibs/projects/agent_roster` → `/plugin install agent-roster@agent-roster-local`;
       `/agent-roster:*` slash commands confirmed live.
+- [x] **Phase 8 — A2A hardening + drift experiment + work-division + stack-qa deepening** (this session;
+      all CLOSED). (a) **A2A primitive hardened → v0.3.0** (plugin `090c877`): typed envelopes,
+      request/reply, push, fan-in; `tests/a2a-hardening.sh` 46 passing. (b) **Drift-detection experiment**
+      EXPERIMENTS #20 — 40 blinded roster reviews; hard behavioral round REVERSED #12 (codex>claude>gemini
+      for drift); recommend keep `/sanity` single-codex. (c) **`/sanity` union-panel brief** → user's Codex
+      agent shipped `/sanity panel`. (d) **A2A leaderless work-division** pattern + live 2-agent demo. (e)
+      **Deepened `stack-interview-qa.md`** (all 9 topics uniform depth, fact-checked). See the Open-threads
+      checklist below for detail + the per-item paths.
 
 ## Open threads to pull next (user will pick one after /compact)
 - [x] **Harden the A2A primitive** — DONE (plugin local commit `090c877`, **v0.3.0**). Typed JSON
@@ -96,25 +104,47 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   **Recommendation: keep `/sanity` single-codex (validated); union panel = insurance only; add executable
   checks for absence-drifts.** Gemini ran on **gemini-3-flash-preview** (default-pro per-model quota was
   exhausted; flash has headroom). NOTE: did NOT modify the real `/sanity` skill — recommendation only.
-- **Other A2A patterns** (never run): self-organizing work division, leader election, shared blackboard.
-- **`/sanity` skill upgrade** (`~/.claude/skills/sanity/`, standalone; currently 1 fresh-codex roster reviewer):
-  #20 VALIDATES the current single-codex default. If the user still wants a panel, wire a **union** (not
-  consensus) cross-backend gather; otherwise leave as-is. No change made yet.
-- **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team`; default
-  `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture; interactive durable
-  transcript. (A2A slash-command docs — now DONE in 090c877.)
+- [x] **`/sanity` union-panel** — DONE (handed off + SHIPPED). I wrote `briefs/sanity-union-panel-brief.md`
+  (audience = user's Codex skill-sync agent: keep single-codex default, add opt-in cross-backend **union**
+  panel, gemini-3-flash-preview, absence-drift caveat). The user's Codex agent IMPLEMENTED it — the skill
+  list now shows **`/sanity panel`** / `--panel`. I did not edit the skill myself.
+- [x] **A2A pattern #1 — leaderless work-division** — DONE (`experiments/a2a_patterns/work_division/`).
+  `board.sh` = shared JSONL task list + atomic `flock` claim (no orchestrator). Verified **exactly-once**
+  under stress (10 workers × 100 tasks, 0 double-claims) + emergent load-balancing (speed-skewed 10/9/7/4),
+  AND a **live 2-agent demo**: two real claude peers (`run-role --peers`) drained an 8-task board 4/4,
+  announcing every claim/finish over the hardened A2A primitive (9 typed JSON envelopes each way, all valid).
+  Transcript: `demo_result.md`.
+- [x] **Deepened `study/exercises/stack-interview-qa.md`** — DONE. All 7 thin topics (TS/JS, React, MySQL,
+  SQL Server, OAuth, REST, Webhooks) brought to the gRPC/GraphQL depth (primer + 6 graduated Q&A w/ the
+  topic's gotcha + one-liners), 267→539 lines. 7-writer fan-out + per-section fact-check polish (caught
+  PKCE=BASE64URL(SHA256(verifier)), InnoDB MVCC snapshot at first read, RFC 9457, etc.). Plan link updated.
+- **Other A2A patterns (remaining):** leader election, shared blackboard (never run — next-time candidates).
+- **Roster Config UI** (USER'S idea, PARKED — don't start unprompted): a configurator that lets the user set
+  preferred agents/models/prompts per task → emits a **manifest JSON** the orchestrator uses to spawn the
+  `team`. User is still shaping it; revisit when they bring it back. (Overlaps the roster "per-instance team
+  task config" open item.)
+- **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team` (see Config UI
+  above); default `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture;
+  interactive durable transcript. (A2A slash-command docs — DONE in 090c877.)
 
-## Resume note (after /compact)
-Nothing live depends on transient state: no agents running (only the Orchestrator window),
-`work/agents/` empty, working tree clean. All results committed — **study repo pushed to GitHub
-(`84455ed`)**; **plugin committed locally (`b4882c8`)**. `/tmp/{herd,debate,exp,exp3}/*` scaffolding
-is disposable (ground truth was node-verified; durable copies are in `experiments/`). **Plugin now at
-local commit `090c877` (v0.3.0 — hardened A2A; local-only, do not push the plugin repo).** On resume:
-**stay in orchestrator mode + window 0 named `Orchestrator`** (already set), re-read live `git`/`tmux`
-state. The A2A-hardening thread is **done**; **drift-detection is the agreed next thread** — confirm
-with the user before starting it. Gotcha to remember: roster agents run with `bypassPermissions`/`workspace-write` can leave
-stray files in the repo root (a debate agent left a `test.js`, since removed) — prefer scoped
-permissions and sweep `work/agents/` + stray files after experiment runs.
+## Resume note (after /compact — written 2026-06-07, ~end of a long session)
+Nothing live depends on transient state: **no agents running (only the Orchestrator window)**,
+`work/agents/` empty, working tree clean & pushed. On resume: **stay in orchestrator mode + window 0
+named `Orchestrator`** (already set), re-read live `git`/`tmux` state, then **ask which thread to pull**
+(menu above) — don't auto-start one. No agreed "next thread" pending; the big arcs (A2A hardening,
+drift experiment, work-division, stack-qa deepening, /sanity panel) are all CLOSED this session.
+
+- **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`,
+  was `f3b31f9` at handoff); **plugin `agent_roster` is LOCAL-ONLY at `090c877` (v0.3.0) — commit, do NOT
+  push the plugin repo** (standing user constraint).
+- **Gemini gotcha (important):** gemini limits are **per-model**. The CLI default (pro) free-tier window
+  exhausts fast ("exhausted your capacity on this model"); **use `--model gemini-3-flash-preview`** (user
+  confirmed headroom). The rate-limited serial runner is `experiments/drift_corpus/_harness/run_gemini.sh`.
+- **pkill gotcha (self-inflicted this session):** `pkill -f "run_gemini.sh"` ALSO matched the monitor
+  process (its cmdline contained that string) and killed it. Use precise patterns / `tmux kill-window` /
+  the roster `stop`, not broad `pkill -f`.
+- Stray-file gotcha still stands: roster agents with `bypassPermissions`/`workspace-write` can leave files;
+  sweep `work/agents/` + stray files after runs (the drift `_harness/runs/` is gitignored + cleaned).
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides
