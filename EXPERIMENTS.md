@@ -9,6 +9,12 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #7 — Parallel writing team at scale + per-instance prompts (2026-06-06)
+- **Probe:** can a multi-instance all-write `implementer` team scale to 6 parallel writers — each producing a substantial structured artifact to its own run dir, no output clobber, clean teardown — and how does the roster fan out **distinct per-instance prompts**?
+- **Setup:** 6× `agent-roster run implementer` (claude, `--claude-permission-mode default`) sharing one `--run-id phase3-drills`, each with its own `--window`/`--label`/`--task-file`, launched into the **live numeric tmux session `0`**. Topics: TS types, React hooks, SQL, GraphQL, gRPC, OAuth.
+- **Result:** **all 6 completed** with high-quality, line-accurate planted-bug drills (7.8–9.6 KB each); `output.md == last_message.md` for every agent (**clobber fix holds at 6× scale**); the numeric-session `-t "$SESSION:"` fix held (no "index 0 in use"); `stop` tore down all 6 panes and left only the `Orchestrator` window. **Two findings:** (1) the `team` command's manifest stores `backend`/`task-file` **per role, not per instance**, so a single team can't give 6 implementers 6 different prompts — distinct-prompt fan-out requires N× `run` under a shared run-id (the workaround used here). (2) Under `default` (read-only) permission, claude agents *tried* to write their drill to a file, were denied, and fell back to printing it as the final message (captured fine via the `last_message.md` fallback) — but **3 of 6 prepended an apologetic "writes blocked" preamble** that had to be stripped on harvest. `acceptEdits` would avoid the preamble but risk stray repo files.
+- **Action:** confirmed the **per-instance prompt gap** as a real plugin limitation (open item — a per-instance manifest/task config would let `team` do this in one command). For capture: either give writers a scratch dir + `acceptEdits`, or instruct the prompt to emit the artifact as the final message without narrating a denied write. No adapter change this run.
+
 ## #6 — Orchestrator /compact resilience (2026-06-06)
 - **Probe:** can the orchestrator survive a context `/compact` and resume seamlessly from a handoff brief?
 - **Setup:** at ~80% context, wrote `CONTEXT.md` (resume brief) + the `dual-purpose-study-roster-repo` memory; then the user ran `/compact`.
@@ -50,4 +56,6 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 ## Open questions
 - Codex's real decline threshold on large/open-ended inputs (the one genuine reliability limit found).
 - ~~Interactive surface untested~~ → characterized in #5: works across backends, but interactive runs have **no clean durable transcript** (`terminal.log` is raw TUI bytes; gemini worst). Open: ANSI-strip / structured transcript if interactive observability matters; wire the `last_message.md` capture into interactive paths.
-- Backend quality head-to-head (codex vs gemini vs claude) on identical generation tasks.
+- ~~Backend quality head-to-head (codex vs gemini vs claude)~~ → answered in #4: **claude > codex > gemini** for code-with-framing.
+- **Per-instance prompts in `team`** (#7): the manifest is keyed per role, not per instance, so distinct-prompt fan-out needs N× `run` under a shared run-id. A per-instance manifest/task config would close this.
+- **Writer capture vs. stray files** (#7): `default` permission makes writers narrate a denied write before falling back to stdout; `acceptEdits` is cleaner but writes into the workspace. Decide a standard "emit artifact" posture for generation teams.
