@@ -9,6 +9,31 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #11 — Inbox/notes handshake: live mid-run Q&A (2026-06-06)
+- **Probe:** does the plugin's `note`/`questions`/`inbox` channel actually round-trip — an agent asks, the orchestrator answers mid-run, the agent consumes it and continues?
+- **Setup:** one interactive claude researcher (acceptEdits) told to write a blocking question to `questions.md`, wait, then read `inbox.md` once answered. Orchestrator answered via `agent-roster note`.
+- **Result:** **full loop works.** The agent wrote `questions.md` (604 B), printed `WAITING-FOR-ANSWER`, and armed a background `until [ -s inbox.md ]` watcher; `agent-roster note` appended a timestamped note to `inbox.md`; the watcher fired, the agent read it and replied `"RECEIVED: SQL Server — proceeding"` with a relevant first-bug idea. Two ergonomic frictions: (a) `acceptEdits` auto-accepts *edits* but the interactive TUI still prompts on every **Bash** command, so an agent polling the inbox via bash blocks on approval; (b) the adapter pre-creates an empty `questions.md`, which tripped claude's read-before-write guard on the first attempt.
+- **Action:** channel validated. Open: a first-class "await answer" primitive (vs. agents hand-rolling a bash poll); auto-approve inbox reads or document the Bash-approval need for interactive Q&A.
+
+## #10 — Mixed-backend pipeline: gemini→claude→codex (2026-06-06)
+- **Probe:** can three backends cooperate in one handoff chain (research → author → verify), each to its strength?
+- **Setup:** gemini researcher compiled React perf+a11y pitfalls → claude implementer wove them into one drill → codex verifier fact-checked it. Handoff via each stage's `output.md`.
+- **Result:** **clean chain, every stage added value.** Gemini produced 10 accurate concrete pitfalls; claude turned them into a strong 9-finding drill (two real blockers); codex's verify caught two genuine **missed** bugs (the score field never guards `NaN`/blank; `fetch` never checks `response.ok` → silent save failure) — both folded into the key (drill 16, now 11 findings). The verify stage was not a rubber stamp.
+- **Action:** reuse author-with-claude / verify-with-codex for high-stakes artifacts. Reinforces #7's lesson that single-agent output benefits from an independent verify pass.
+
+## #9 — Cross-backend QA on generated drills (2026-06-06)
+- **Probe:** do independent codex + gemini reviewers catch technical errors in claude-generated drills — and do they agree?
+- **Setup:** both backends (read-only) independently fact-checked the 9 solo drills (07–15) for wrong bugs/fixes/missed bugs.
+- **Result:** **high value, with consensus on the worst.** Both agreed drill 15's "compiles clean because `noImplicitReturns` is off" is FALSE (a `: number` fn that can fall through is a `TS2366` error under `strictNullChecks`) and drill 11's "errors bubble to Express's default handler" is FALSE (Express 4 async rejections become an `unhandledRejection` → crash/hang). Codex additionally flagged drill 08 (`${err}` renders as `Error: msg`, not `[object Object]`) and drill 12 (Mongo `$or`/`$where` are ANDed with the cohort filter, so the cited example can't dump other cohorts). Both surfaced extra missed bugs (CSV injection, BOLA, NULL-balance logic). Net: **~7 of 9 drills had at least one inaccuracy.**
+- **Finding:** single-agent generation — even claude's — ships answer-key errors at a measurable rate; two-backend QA catches them and the **consensus items are the reliable signal**. Codex completed a ~1200-line, 9-file review without declining (contrast #1) because the task was concrete ("list errors") not open-ended — narrowing the earlier reliability finding.
+- **Action:** QA pass is now part of the drill pipeline. Corrected the confirmed errors in drills 08/11/12/15; added 2 missed bugs to 16.
+
+## #8 — Blind cross-backend judging of the gotcha bake-off / judge bias (2026-06-06)
+- **Probe:** re-run #4 ("claude > codex > gemini") but with the JUDGES being codex and gemini, blind — does the finding survive foreign judging, or was it claude-as-judge bias?
+- **Setup:** fresh single-shot gotcha sets from all 3 backends (identical prompt), blind-labeled A=gemini / B=claude / C=codex (mapping hidden), judged independently by a codex, a gemini, and a claude verifier on subtlety / fix-correctness / coverage / clarity.
+- **Result:** rankings — **codex judge:** C(codex) > B(claude) > A(gemini); **gemini judge:** B(claude) > A(gemini) > C(codex); **claude judge:** A(gemini) > B(claude) > C(codex). **Claude wins on aggregate** (ranks 2-1-2, best mean) and is the **only** candidate all three judges found technically error-free (gemini's set had a real arrow-fn syntax error; codex's an undeclared variable). Two meta-findings: (1) **only codex self-preferred** (ranked itself #1 despite its own flagged error); claude and gemini each ranked a *competitor* first. (2) The breadth race is genuinely close — claude's durable edge is **correctness**, which is exactly what #4 measured.
+- **Action:** #4's "claude best for code-with-framing" holds up under blind foreign judging. When using a backend as a sole judge, watch for self-preference (codex showed it) — prefer a multi-backend judge panel.
+
 ## #7 — Parallel writing team at scale + per-instance prompts (2026-06-06)
 - **Probe:** can a multi-instance all-write `implementer` team scale to 6 parallel writers — each producing a substantial structured artifact to its own run dir, no output clobber, clean teardown — and how does the roster fan out **distinct per-instance prompts**?
 - **Setup:** 6× `agent-roster run implementer` (claude, `--claude-permission-mode default`) sharing one `--run-id phase3-drills`, each with its own `--window`/`--label`/`--task-file`, launched into the **live numeric tmux session `0`**. Topics: TS types, React hooks, SQL, GraphQL, gRPC, OAuth.

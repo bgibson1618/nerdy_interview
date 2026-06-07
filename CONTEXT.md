@@ -37,11 +37,21 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       GitHub-UI review: `feat/payment-webhook` (PR #1), `feat/students-rest-api` (PR #2),
       `feat/jwt-auth-middleware` (PR #3); private keys in `study/drills/pr-review-keys.md`.
       Remote is live: `origin` → `github.com/bgibson1618/nerdy_interview`.
+- [x] **Phase 4** — DONE (Sunday-prep volume). (a) **10 more static drills** → `study/drills/07..16`
+      (async, error-handling, testing, security grab-bag, REST, Node gotchas, caching, SQL Server,
+      advanced TS, React perf+a11y); 07–15 from a 9-agent claude team, 16 from a gemini→claude→codex
+      pipeline. **All cross-backend QA'd** (codex+gemini); confirmed key errors in 08/11/12/15 fixed.
+      (b) **5 more PR branches/PRs** (#4 password-reset, #5 avatar-upload, #6 graphql-notes,
+      #7 course-cache, #8 email-queue-worker) — keys appended to `pr-review-keys.md`. Now **16 drills + 8 PRs**.
+      (c) Experiments #8 blind judging (claude wins on aggregate; codex self-prefers), #9 cross-backend QA
+      (~7/9 drills had a key error; consensus = reliable signal), #10 mixed-backend pipeline, #11 inbox/notes
+      handshake (channel works). Tooling note: the "no-write, emit-as-message" prompt only *partly* suppresses
+      claude's denied-write preamble — harvest still strips it.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides
   web guesses; it's TS/JS, React, MySQL, SQL Server, OAuth, REST, Webhooks, gRPC, GraphQL),
-  `study/exercises/*` (gotchas, stack Q&A), `study/drills/*` (6 static drills + PR keys).
+  `study/exercises/*` (gotchas, stack Q&A), `study/drills/*` (16 static drills + 8 PR keys).
 - Sample app on `main`: `src/` (Express/TS skeleton + the merged feature branches over time),
   `package.json`/`tsconfig.json`. `npm install` done; `node_modules/`, `dist/`, `work/` gitignored.
 - Roster findings + open questions: `EXPERIMENTS.md`.

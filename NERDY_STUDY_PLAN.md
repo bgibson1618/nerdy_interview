@@ -208,7 +208,7 @@ function getUser(req, res) {
 **Senior framing to say out loud:** "Two security blockers and one crash bug; I'd block on those. The id-generation and persistence are design concerns I'd raise but they may be out of scope for this PR. The rest are nits a linter should own."
 </details>
 
-**▶ More drills:** [`study/drills/`](study/drills/) — six more planted-bug drills built on this same pattern, covering **TypeScript type-safety, React hooks, SQL, GraphQL, gRPC, and OAuth** (the last four *teach* the concept in the key — good for the GraphQL/gRPC areas worth extra prep). Plus three **PR review drills** you review in the real GitHub **Pull requests** tab (`feat/payment-webhook`, `feat/students-rest-api`, `feat/jwt-auth-middleware`); keys in [`study/drills/pr-review-keys.md`](study/drills/pr-review-keys.md). Do two or three cold before Monday — at least one static drill and one PR.
+**▶ More drills:** [`study/drills/`](study/drills/) — **16 planted-bug static drills** built on this same pattern: TS type-safety, React hooks, SQL, GraphQL, gRPC, OAuth, async/concurrency, error-handling, **test quality**, a web-security grab-bag, REST design, Node gotchas, caching, SQL Server/T-SQL, advanced TS, and React perf+a11y. Plus **8 PR review drills** you review in the real GitHub **Pull requests** tab (keys in [`study/drills/pr-review-keys.md`](study/drills/pr-review-keys.md)). See [`study/drills/README.md`](study/drills/README.md) for the index. A good Sunday loop: a static drill cold (timed, out loud) → a PR in the GitHub UI → self-grade against the key → repeat across areas, prioritizing GraphQL/gRPC and anything you fumble.
 
 ---
 
