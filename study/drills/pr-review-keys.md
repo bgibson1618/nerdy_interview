@@ -68,3 +68,95 @@ How to run each one (≈15 min):
 
 **Senior framing:** "Block on two: `decode` instead of `verify` (every token is forgeable, including `role: admin`) and the fail-open `catch` (auth errors let requests through). Raise the query-param token and the weak secret fallback. The encouraging part is `issueToken` already signs correctly — the verify path just has to use the same secret."
 </details>
+
+---
+
+## PR #4 — `feat/password-reset`: "Add password reset flow"
+
+<details>
+<summary><b>Answer key — don't peek until you've reviewed the PR</b></summary>
+
+1. **Blocker (Security — predictable token):** the reset token is `Math.random().toString(36)` ×2 — `Math.random()` is **not** cryptographically secure, so tokens are guessable/predictable and an attacker can forge a valid reset. The irony: `randomBytes` is imported and used right below for the salt — they had the right tool. Fix: `randomBytes(32).toString('hex')`.
+2. **Blocker (Security — token never expires, never single-use):** the token is stored with no expiry, and `/confirm` sets the password but never clears `reset_token`. So a leaked/old link works forever and is replayable. Fix: store an expiry, check it, and null the token on use (and on password change).
+3. **Should-fix (Security — user enumeration):** `/request` returns `404 "no account for that email"` for unknown emails vs `200` for known ones, so an attacker can enumerate registered users. Fix: always return the same generic 200 ("if that email exists, we sent a link").
+4. **Should-fix (Security — token logged):** `console.log('[password-reset] emailing … link …')` writes the live reset link (token) to logs/aggregators where it can be replayed within its (nonexistent) TTL. Fix: never log the token; log a correlation id.
+5. **Should-fix (Security — loose token check + no rate limit):** `user.reset_token != token` uses loose `!=`, and `/request` has no rate limiting, so it doubles as an enumeration/spam amplifier. Fix: strict compare (ideally constant-time), and rate-limit by IP/email.
+6. **Nit (no password policy):** `newPassword` is hashed without any length/strength validation. Fix: validate before hashing.
+7. **Praise (Correct hashing):** `/confirm` hashes the new password with `scrypt` and a **per-user random salt** — a real KDF, done right. That's exactly the bar; the token generation just needs the same crypto rigor (`randomBytes`, not `Math.random`).
+
+**Senior framing:** "Block on the `Math.random` token and the no-expiry/replayable token — together they make account takeover trivial. Raise the enumeration response, the logged token, and the missing rate limit. Credit the scrypt+salt hashing — the author clearly knows secure crypto, so the fix is to apply it to the token too."
+</details>
+
+---
+
+## PR #5 — `feat/avatar-upload`: "Add avatar upload endpoint"
+
+<details>
+<summary><b>Answer key — don't peek until you've reviewed the PR</b></summary>
+
+1. **Blocker (Security — path traversal on write):** `path.join(UPLOAD_DIR, filename)` with a client-controlled `filename` lets `../../…` escape the upload dir and **overwrite arbitrary files** (e.g. app code, cron). Fix: `path.basename` + a server-generated name, and verify the resolved path stays under `UPLOAD_DIR` (`path.resolve(...).startsWith(root)`).
+2. **Blocker (Security — stored XSS via trusted content-type):** the client-supplied `contentType` is stored and replayed verbatim as the response `Content-Type` on `GET /file/:id`, served inline same-origin. Upload `text/html`/SVG with a script and it executes in victims' browsers. Fix: don't trust client content-type — allow-list image types, send `X-Content-Type-Options: nosniff` and `Content-Disposition: attachment`, ideally serve from a separate origin/CDN.
+3. **Blocker (Security — no auth / IDOR):** `POST /:userId` lets **any** caller upload to **any** userId and overwrite someone else's avatar. Fix: require auth; force the target to the authenticated user.
+4. **Should-fix (Availability — no real size/type validation):** only a 20 MB JSON limit; base64 inflates, there's no per-user quota and no magic-byte check, so it's a disk/DoS vector and lets non-images through. Fix: cap decoded size, verify real image bytes.
+5. **Should-fix (Correctness — sync fs blocks the event loop):** `fs.writeFileSync` / `fs.readFileSync` on the request path stall every concurrent request under load. Fix: `fs.promises` / streaming.
+6. **Should-fix (Reliability — unawaited insert):** the `db.query(INSERT …)` is **not awaited** — a floating promise. The response is sent (claiming success) regardless of whether the row was written, and any insert error is swallowed as an unhandled rejection. Fix: `await` it inside a try/catch.
+7. **Praise (Good id + parameterization):** the avatar record id is a server-side `randomUUID()` (not client-controlled) and the insert is parameterized — good instincts. The gap is trusting the filename and content-type and skipping auth.
+
+**Senior framing:** "Block on the path traversal, the content-type stored-XSS, and the missing authorization — any one is a real compromise. Raise the size/type validation, the sync fs, and the unawaited insert. Credit the UUID + parameterized insert."
+</details>
+
+---
+
+## PR #6 — `feat/graphql-notes`: "Add GraphQL session-notes resolvers"
+
+<details>
+<summary><b>Answer key — don't peek until you've reviewed the PR</b></summary>
+
+1. **Blocker (Security — IDOR / missing auth):** `studentNotes(studentId)` returns any student's **private** tutor notes with no `ctx.user` check — any caller reads anyone's notes by changing the id. Fix: verify the caller is that student's tutor (or admin) before returning.
+2. **Blocker (Security — unauthorized mutation):** `deleteNote(id)` deletes a note with **no auth and no ownership check** — any caller deletes any note. Fix: require auth and confirm the note belongs to the caller.
+3. **Should-fix (Performance — N+1):** `Note.author` runs one `SELECT users` per note, so a list of N notes fires N author queries. Fix: batch with a DataLoader keyed on `author_id`.
+4. **Should-fix (Privacy — full-row leak):** `Note.author` does `SELECT *` from `users`, handing the raw row (password hash, email, …) to the `User` resolver — over-fetching and a leak risk. Fix: select an explicit projection.
+5. **Should-fix (Correctness — non-null mismatch):** `note(id): Note!` is non-null but returns `rows[0]`, which is `undefined` for an unknown id; resolving a non-null field to null makes GraphQL error the whole query. Fix: throw a NotFound error, or make the field nullable.
+6. **Should-fix (no pagination):** `studentNotes`/`myNotes` return all rows unbounded. Fix: paginate.
+7. **Nit (input validation):** `createNote` doesn't validate `body` (empty/length) before inserting.
+8. **Praise (Auth done right):** `myNotes` derives identity from `ctx.user.id` and ignores client args — the secure pattern `studentNotes` should copy.
+
+**Senior framing:** "Block on the two authorization holes — `studentNotes` is an IDOR and `deleteNote` has no ownership check. Raise the N+1, the `SELECT *` leak, the non-null mismatch, and pagination. The fix template already exists in the file: `myNotes` does auth correctly."
+</details>
+
+---
+
+## PR #7 — `feat/course-cache`: "Add in-process read cache for courses and dashboards"
+
+<details>
+<summary><b>Answer key — don't peek until you've reviewed the PR</b></summary>
+
+1. **Blocker (Security — cross-user data leak):** `getStudentDashboard` caches each student's **personalized** dashboard under the constant key `'dashboard'` — the key omits `studentId`. The first student's private data (their courses, messages) is then served to **every** other student. Fix: key on the user (`dashboard:${studentId}`).
+2. **Should-fix (Correctness — no invalidation / stale reads):** `updateCourse` writes the DB but never invalidates the cached course, so `getCourse` serves the old title until the process restarts. Fix: `cache.delete(courseId)` (or update it) on write.
+3. **Should-fix (Availability — unbounded cache):** the `Map` has no size cap and no eviction — it grows forever. Fix: a bounded LRU.
+4. **Should-fix (Correctness — TTL is dead code):** `TTL_SECONDS`/`expiresAt` are computed but never enforced (and the unit is seconds added to a millisecond `Date.now()`), so nothing ever expires. Fix: store `{ value, expiresAt }` in ms and check on read.
+5. **Should-fix (caches misses):** `getCourse` uses `cache.has`, so a missing course caches `undefined` and is returned forever even after the row is created. Fix: don't cache misses (or use a short negative TTL).
+6. **Should-fix (cache stampede):** on a cold key under load every concurrent caller misses and hits the DB at once — no single-flight. Fix: cache the in-flight promise so concurrent callers share one query.
+7. **Praise (Fully-qualified key):** `getEnrollment` builds `enrollment:${studentId}:${courseId}` — every dimension in the key. That's exactly the discipline `getStudentDashboard` is missing.
+
+**Senior framing:** "Block on the `'dashboard'` key — it's a cross-user privacy leak, not just a perf bug. Raise the missing invalidation, the unbounded growth, the dead TTL, and the stampede. The in-file model is `getEnrollment`'s fully-qualified key."
+</details>
+
+---
+
+## PR #8 — `feat/email-queue-worker`: "Add background email queue worker"
+
+<details>
+<summary><b>Answer key — don't peek until you've reviewed the PR</b></summary>
+
+1. **Blocker (Reliability — ack before process → lost email):** `queue.delete(msg.id)` runs **before** `deliver(msg)`. If the send throws (or the process dies between the two), the job is already gone — the email is silently never sent. Fix: delete only **after** a successful send; rely on a visibility timeout for retries.
+2. **Should-fix (Correctness — not idempotent → double-send):** nothing dedupes on `msg.id`. Queues are at-least-once, so a redelivered message sends the same email twice. Fix: idempotency key / processed-id set, or make delivery idempotent.
+3. **Should-fix (Reliability — poison message, infinite retry):** on failure `requeue(msg)` re-adds the job with no attempt counter, no cap, and no dead-letter queue — a permanently-bad message loops forever. Fix: track attempts, cap retries, DLQ after N.
+4. **Should-fix (no backoff):** `requeue` is immediate, so a failing provider gets hammered with zero delay. Fix: exponential backoff.
+5. **Should-fix (Availability — unbounded concurrency):** `Promise.all(messages.map(...))` fires all 100 sends at once with no concurrency cap — floods the provider, risks rate-limit bans and memory spikes. Fix: bound concurrency (e.g. p-limit, or batch).
+6. **Should-fix (Observability — swallowed error):** the `catch` requeues but logs nothing, so delivery failures are invisible to on-call. Fix: log the error with context.
+7. **Nit (busy-loop):** `while (true)` with no sleep when `receive` returns empty spins hot, pegging CPU and hammering the queue. Fix: backoff / long-poll on empty.
+8. **Praise (Defensive shape check + typed contract):** it validates `msg.to`/`msg.template` and drops malformed jobs instead of crashing the batch, behind a typed `QueueMessage` interface — good habits. (Note even the skip path deletes — consistent with the ack-ordering issue to fix.)
+
+**Senior framing:** "Block on ack-before-process — it silently loses email on any failure. Raise idempotency (double-sends), the poison-message infinite retry with no DLQ, unbounded concurrency, and the swallowed errors. Credit the typed contract and shape validation."
+</details>
