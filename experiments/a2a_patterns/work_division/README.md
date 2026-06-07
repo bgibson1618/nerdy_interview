@@ -26,11 +26,13 @@ bash test_exactly_once.sh          # the exactly-once / coverage stress test
 bash board.sh init board.jsonl 12  # then `claim`/`done`/`status`/`dump`
 ```
 
-## Live-agent layer (next step)
-The deterministic mechanism is proven above with concurrent shell workers. The full A2A demo adds
-**real roster agents** that (a) claim off this board and (b) **announce** claims/completions to
-peers via the A2A primitive (`send all` / `recv`), launched with `run-role --peers` in one run so
-they discover each other — self-organizing with no orchestrator relay.
+## Live-agent layer (DONE — see `demo_result.md`)
+The deterministic mechanism above is proven with concurrent shell workers. The full A2A demo was
+then run with **two real claude agents** (`worker1`/`worker2`) launched as peers in one run
+(`run-role --peers`): they drained an 8-task board **exactly-once, 4/4**, claims genuinely
+interleaved, while **announcing every claim/completion to each other over the hardened A2A
+primitive** (`send all`, 9 typed JSON envelopes each way, all valid). No orchestrator — they
+self-organized off the shared board + peer broadcasts. Full transcript: `demo_result.md`.
 
 ## If it graduates
 `claim`/`done` on a shared board is a natural candidate to become first-class `agent-roster`
