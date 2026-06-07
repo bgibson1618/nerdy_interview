@@ -62,21 +62,44 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       (EXPERIMENTS #17, #18): 3 backends (claude/codex/gemini) debate JS questions via A2A, no
       orchestrator. Findings: A2A scales to N=3; on **verifiable** questions, debate is robust to
       misinformation (planted-wrong agents get corrected by runtime proof, or refuse to assert the
-      falsehood at all — truth won in every config; **no herding**). **OPEN / NEXT STEP the user is
-      weighing:** the real herding/sycophancy test needs an **unverifiable or subjective** claim
-      (no oracle to end the argument) + a confident-wrong majority, ideally with agents' code-exec
-      removed. User may also pull other A2A threads (work-division, leader election, blackboard) or
-      harden the primitive (structured envelopes, request/reply, push-not-poll). User is updating
-      the `/sanity` skill separately (own tweaks).
+      falsehood at all — truth won in every config; **no herding**).
+- [x] **Phase 7 — herding test + plugin packaging** (done; A2A/debate/herding line CLOSED per user).
+      (a) **Asch conformity / herding experiment** — EXPERIMENTS #19, `experiments/herding_{prereg,results}.md`.
+      A **Workflow** vetted a 6-question battery (4 objective misconceptions + 2 pure-subjective) × 3
+      backends × {baseline, wrong-majority}, plus a maximal-pressure Phase 2 (authority + unanimity +
+      lone-dissenter doubt-induction). **0 caves in both phases** — objective held truth; the subjective
+      false-absolute majority **backfired into reactance** (agents defended the option the majority
+      called "wrong"). With #17/#18: frontier LLMs show no conformity in any paradigm tested (vs human
+      Asch ~33%). User is **satisfied — this line is closed.**
+      (b) **Plugin packaging:** authored `.claude-plugin/marketplace.json` + refreshed `plugin.json`
+      to v0.2.0 (plugin commit `b4882c8`). agent_roster now loads as a plugin via
+      `/plugin marketplace add /home/bgibs/projects/agent_roster` → `/plugin install agent-roster@agent-roster-local`;
+      `/agent-roster:*` slash commands confirmed live.
 
-## Resume note (after a restart)
-tmux + `/tmp` do NOT survive a reboot, but nothing live depends on them: no agents were running
-(only the Orchestrator window), and all results are committed (study repo pushed to GitHub; plugin
-committed locally at `aa40d37`). `/tmp/debate/*` + `/tmp/exp3/*` scaffolding is disposable
-(ground-truth was node-verified and the durable copies are in `experiments/`). On resume, re-assume
-orchestrator mode + rename window 0 to `Orchestrator`, then continue the A2A thread (or whatever the
-user directs). Watch the stray-write risk: debate agents ran with `bypassPermissions`/`workspace-write`
-and one left a scratch `test.js` in the repo root (removed) — prefer scoped permissions or clean up.
+## Open threads to pull next (user will pick one after /compact)
+- **Other A2A patterns** (never run): self-organizing work division, leader election, shared blackboard.
+- **Harden the A2A primitive**: structured/typed message envelopes, request/reply correlation, push
+  instead of poll, multi-peer fan-in. (Today: `peers` / `send [all] --from` / `recv [--wait]` + `run-role --peers`.)
+- **`/sanity` skill upgrade** (`~/.claude/skills/sanity/`, standalone; currently 1 fresh-claude Task subagent):
+  the user is doing their own tweaks but may want help wiring a claude+codex review *panel* (per the
+  EXPERIMENTS #12 recommendation). No plugin dependency needed for an all-claude panel; codex needs a
+  shell-out (roster or direct `codex exec`).
+- **Drift-detection experiment**: does cross-backend beat single-claude on the *doc↔code coherence* task
+  `/sanity` actually does? (The #12 ranking was measured on bug-finding, not coherence — untested for this.)
+- **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team`; default
+  `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture; interactive durable
+  transcript. Plus: add `commands/send.md|recv.md|peers.md` so A2A gets `/agent-roster:*` slash commands.
+
+## Resume note (after /compact)
+Nothing live depends on transient state: no agents running (only the Orchestrator window),
+`work/agents/` empty, working tree clean. All results committed — **study repo pushed to GitHub
+(`84455ed`)**; **plugin committed locally (`b4882c8`)**. `/tmp/{herd,debate,exp,exp3}/*` scaffolding
+is disposable (ground truth was node-verified; durable copies are in `experiments/`). On resume:
+**stay in orchestrator mode + window 0 named `Orchestrator`** (already set), re-read live `git`/`tmux`
+state, then **ask the user which Open Thread to pull** (list above) — the A2A/debate/herding line is
+closed. Gotcha to remember: roster agents run with `bypassPermissions`/`workspace-write` can leave
+stray files in the repo root (a debate agent left a `test.js`, since removed) — prefer scoped
+permissions and sweep `work/agents/` + stray files after experiment runs.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides
