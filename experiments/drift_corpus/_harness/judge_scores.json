@@ -1,0 +1,958 @@
+[
+  {
+    "bid": "R001",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "Items 4 and 19: flags a missing /auth/callback route in App.tsx (handleCallback never wired into routing) as a drift. This is not a planted drift; the redirect_uri /auth/callback is a coherent control (PD-C5), and the unwired callback is just the skeleton's minimal scaffolding, not a doc-vs-code inconsistency.",
+      "Item 21 (and section 1 R6): flags PKCE as documented-but-not-implemented (no code_challenge/verifier). Not planted; over-flagging in the auth area that PD-C5 specifically warns is tempting. The 'PKCE' wording is descriptive flavor in the skeleton, not a planted contradiction.",
+      "Item 15: flags that /me 'validates the session' but RequireAuth only checks local getSession() and no code validates against the API. This over-extends the planted /profile-vs-/me path drift (D12) into an invented behavioral gap that is just skeleton minimalism.",
+      "Item 17: flags that Detail does not fetch the /metrics/:id header endpoint (only getMetricSeries). The three /metrics endpoints are a coherent control (PD-C6); the un-fetched header is skeleton minimalism, not a planted drift.",
+      "Items 10, 11, and 18: flags that the Settings-selected date range does not drive the Detail view's series query (both use local state from config default). This is an invented behavioral-contract drift not in the planted set; the skeleton simply does not wire them, and no doc-vs-doc/value contradiction is planted here.",
+      "Item 26: flags missing root index.html and tsconfig.json as a build/drift defect. Those files are simply not part of the deliberately minimal corpus; the answer key plants no such drift, so this is an invented 'app does not build' claim."
+    ],
+    "real_unplanted": [],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R002",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [
+      "Item 9/16: getMetric (/metrics/:id) is exported but never called from the Detail view, which derives latest/min/max from the series instead, and the Settings range selection is held in local useState and never wired to the Detail query (no shared store). Genuine code-completeness gaps, not contradicting any coherent control.",
+      "Item 13/15: no PKCE code_challenge/code_verifier despite 'PKCE' in docstrings, and no /auth/callback route while handleCallback is exported but never invoked. Real auth-flow wiring gaps, but they describe absent implementation rather than a planted doc/code contradiction."
+    ],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R003",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [
+      "Item #11: PKCE is documented (ARCHITECTURE/README/oauth.ts:2 comment) but absent from code — no code_challenge/code_verifier anywhere. Verified true against corpus; genuine doc/code gap not in planted set.",
+      "Item #12: /auth/callback redirect target documented but App.tsx registers no route for it, leaving handleCallback() unrouted/dead code. Verified true (App.tsx routes only /, /metrics/:metricId, /preferences). Genuine but pre-existing baseline scaffold, not a planted drift.",
+      "Item #14: R5 Settings->Detail range wiring missing — range held in local useState in both SettingsView and MetricDetailView with no shared store/context. Real code observation, not planted.",
+      "Item #16: GET /me / getProfile() is never called from anywhere (only its own definition exists). Verified true against corpus; genuine but unplanted."
+    ],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R004",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "Report #15 (line 73): claims no /auth/callback route exists and handleCallback() is never wired, so OAuth login 'cannot complete.' PD-C5 marks redirect_uri http://localhost:5173/auth/callback as a COHERENT control across oauth.ts/ARCHITECTURE/README and explicitly warns the auth area invites over-flagging. The callback handling is not a planted drift; flagged as a blocking structural break.",
+      "Report #16 (line 75): claims Detail never fetches /metrics/:id and getMetric() is dead code. PD-C6 marks GET /metrics/:id as a COHERENT endpoint control across api/metrics.ts/ARCHITECTURE/README and notes the sibling /me drift invites over-flagging. The getMetric call pattern is not a planted drift.",
+      "Report #17 (line 77): claims GET /me / getProfile is 'dead code' (never invoked, validates from sessionStorage). This is an invented behavioral mismatch distinct from the planted /profile-vs-/me path drift (caught as #7); the never-invoked claim is not a planted inconsistency.",
+      "Report #10 (line 63): claims PKCE is documented (ARCHITECTURE/README) but not implemented in oauth.ts. PKCE is not a planted drift and not flagged as a real defect in the key; the auth area near PD-C5 invites this over-flag.",
+      "Report #14 (line 71): claims R5 Settings date-range selector is dead local state never wired to the Detail view. This Settings->Detail wiring gap is not a planted drift; flagged as a major R5-not-implemented finding."
+    ],
+    "real_unplanted": [],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R005",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R006",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [
+      "Report §3 #13: CONTEXT.md says 'the public surface is the 8 routes documented in ARCHITECTURE.md plus GET /health', but ARCHITECTURE.md's API-surface table already includes GET /health among its 8 rows (7 non-health + health). This off-by-one route-count wording mismatch between CONTEXT and ARCHITECTURE is a genuine inconsistency present in the corpus text, but it is not in the planted drift set and is not a coherent control."
+    ],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R007",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R008",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "Finding #14: claims CONTEXT.md's phrasing '8 routes documented in ARCHITECTURE.md plus GET /health' double-counts health (asserting the arch's 8-row API table already includes /health). This is an invented/over-flagged phrasing mismatch, not a planted drift and not a real defect — the '8 routes plus /health' wording is plausibly coherent and is not in the answer key."
+    ],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R009",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [
+      "Item 10: PKCE claimed in ARCH/README/code comment but no code_challenge/code_verifier in beginLogin/exchangeCode — documented behavior genuinely absent from code",
+      "Item 11: getProfile()/GET-/me wrapper defined but called nowhere; RequireAuth validates only by sessionStorage presence, so the documented session-validation call never fires",
+      "Item 12: MetricDetailView derives the header from the series array and never calls getMetric(id) (defined but unused), contradicting the plan/ARCH stated /metrics/:id fetch",
+      "Item 16: no Route for /auth/callback and handleCallback wired nowhere, so the OAuth redirect cannot be consumed in-app (login loop cannot complete)",
+      "Item 17: SettingsView date range is isolated local useState never lifted/persisted, so the R5 selection does not drive MetricDetailView's series query"
+    ],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R010",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "Item 14: claims CONTEXT 'double-counts' health (8 routes + /health implying 9) vs ARCHITECTURE's 8-row table including health. This is an invented route-counting mismatch not present in the planted set and not a coherent control; it relies on a fragile reading of phrasing rather than a real numeric/contract drift."
+    ],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R011",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "§3.13/item 13: claims a 'functional auth break' — no /auth/callback route and handleCallback never invoked, so 'the OAuth flow cannot complete.' Flagged as the highest-severity BLOCKING drift, but this is an invented architectural defect not in the planted set; PD-C5 explicitly marks redirect_uri http://localhost:5173/auth/callback as a coherent control and warns against over-flagging nearby auth facts.",
+      "§3.14/item 14: claims the documented session-validation mechanism 'does not exist' because getProfile/`/me` is never called and RequireAuth validates only from sessionStorage. This dead-code/unwired-validation claim is an invented defect beyond the planted /profile-vs-/me path drift (PD-D12).",
+      "§3.15/item 15: doc-internal 'three functions cannot map to four endpoints' in IMPLEMENTATION_PLAN Phase 2 — an invented inconsistency not in the planted set."
+    ],
+    "real_unplanted": [],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R012",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "§3 #13: claims CONTEXT route count is 'off by one' (8 routes plus /health double-counts /health) — this is an invented doc-vs-doc inconsistency not in the planted set and not a verified real defect; flagged as DRIFT without supporting ground truth."
+    ],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R013",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R014",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [
+      "Item 13: src/auth/jwt.ts:27 comment '// 7d' annotates signRefreshToken but the signed value is 30d — a genuine stale code comment (a real, directly-related side effect of TF-D3, not in the planted set)",
+      "Item 14: CONTEXT.md:17 phrasing '8 routes documented in ARCHITECTURE plus GET /health' overcounts by one since the ARCHITECTURE API-surface table already includes /health — a genuine minor textual miscount, flagged as minor"
+    ],
+    "_project": "taskflow-api"
+  },
+  {
+    "bid": "R015",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "PD-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "PD-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [],
+    "real_unplanted": [],
+    "_project": "pulse-dashboard"
+  },
+  {
+    "bid": "R016",
+    "stated_verdict": "SIGNIFICANT DRIFT",
+    "drift_scores": [
+      {
+        "id": "TF-D1",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D2",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D3",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D4",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D5",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D6",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D7",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D8",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D9",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D10",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D11",
+        "verdict": "caught"
+      },
+      {
+        "id": "TF-D12",
+        "verdict": "caught"
+      }
+    ],
+    "false_positives": [
+      "Item 13 (route-count statement): claims CONTEXT.md's phrasing '8 routes documented in ARCHITECTURE.md plus GET /health' double-counts and implies 9 routes. This is an over-interpretation of ambiguous wording, not a planted drift and not clearly a genuine defect — an invented/marginal inconsistency."
+    ],
+    "real_unplanted": [],
+    "_project": "taskflow-api"
+  }
+]

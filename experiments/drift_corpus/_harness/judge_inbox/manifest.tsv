@@ -1,0 +1,17 @@
+blind_id	project	rep	condition	src
+R001	pulse-dashboard	1	codex1	pulse-dashboard/rep1/codex1.md
+R002	pulse-dashboard	2	claude3	pulse-dashboard/rep2/claude3.md
+R003	pulse-dashboard	2	claude1	pulse-dashboard/rep2/claude1.md
+R004	pulse-dashboard	1	claude3	pulse-dashboard/rep1/claude3.md
+R005	taskflow-api	1	codex1	taskflow-api/rep1/codex1.md
+R006	taskflow-api	1	claude2	taskflow-api/rep1/claude2.md
+R007	pulse-dashboard	2	codex1	pulse-dashboard/rep2/codex1.md
+R008	taskflow-api	2	claude2	taskflow-api/rep2/claude2.md
+R009	pulse-dashboard	1	claude1	pulse-dashboard/rep1/claude1.md
+R010	taskflow-api	1	claude1	taskflow-api/rep1/claude1.md
+R011	pulse-dashboard	1	claude2	pulse-dashboard/rep1/claude2.md
+R012	taskflow-api	1	claude3	taskflow-api/rep1/claude3.md
+R013	taskflow-api	2	codex1	taskflow-api/rep2/codex1.md
+R014	taskflow-api	2	claude1	taskflow-api/rep2/claude1.md
+R015	pulse-dashboard	2	claude2	pulse-dashboard/rep2/claude2.md
+R016	taskflow-api	2	claude3	taskflow-api/rep2/claude3.md
