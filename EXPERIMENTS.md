@@ -9,6 +9,15 @@ captures what we ran, what we were probing, and what we learned. Newest first.
 
 ---
 
+## #17 — Cross-backend agent debate over A2A (2026-06-06)
+- **Probe:** can three different-backend agents (claude/codex/gemini) debate via the A2A primitive at N=3, and does peer debate change answers — including under a confidently-wrong agent?
+- **Setup:** each answers the same node-verified JS questions solo, broadcasts via the new `send all`, collects both peers via `recv --wait`, then finalizes — no orchestrator. Three rounds: (a) easy gotchas, (b) hard float/`toFixed`/Unicode, (c) **adversarial** — codex secretly briefed that `(2.675).toFixed(2)="2.68"` (truth `"2.67"`) and told to argue firmly.
+- **Result:**
+  - **(a)+(b): A2A scaled cleanly to N=3 across backends, but no disagreement** — all three answered every question correctly solo, even on the hard set (`(2.675).toFixed(2)`, family-emoji code points=7, `toFixed` half-up). "Debate beats solo" is untestable when frontier models simply agree on facts.
+  - **(c) adversarial — truth won.** 16 messages of genuine back-and-forth. R0: claude/gemini `2.67` vs codex `2.68`. Codex held firm and demanded proof; claude and gemini escalated to concrete evidence (exact IEEE-754 rep `2.67499999999999982236`, runtime `(2.675).toFixed(2)→"2.67"`). Codex then **conceded** ("the proof is airtight; local Node also prints 2.67"). Final: unanimous `2.67`. **No herding** — the honest agents never caved to the confident-wrong peer; resolution was evidence-based (verifiable runtime output), not majority/social.
+- **Findings:** the A2A primitive works as a multi-agent truth-finding substrate at N=3 cross-backend; under a confident-wrong peer, strong agents stay robust and converge to truth via verifiable evidence. Caveats: the question was node-checkable (subjective/unverifiable claims may herd differently); the planted agent was told to concede to airtight proof (a "never concede" brief would test pure social pressure).
+- **Action:** added `send all` broadcast (plugin `aa40d37`). A2A primitive now: `peers` / `send [all] --from` / `recv --wait` + `run-role --peers`.
+
 ## #16 — Cry-wolf resolved + A2A primitive built (2026-06-06)
 - **Cry-wolf re-run** on a *genuinely* clean target (read-only, async-rejection wrapper, validated, auth-scoped): **FP ≈ 0** — codex & gemini "NO DEFECTS FOUND" ×3; claude clean ×2 + one defensible hardening nit. Resolves the Exp-1 confound (the earlier "clean" file had real bugs); high precision confirmed across all three backends.
 - **A2A messaging primitive built** in the plugin (local commit `d49527e`): `peers` (discovery), `send --from` (attributed, logs `message_sent`), `recv [--wait] [--peek]` (new-messages-only via a read cursor; `--wait` blocks), and `run-role --peers` (opt-in prompt block exposing label/run-id/commands). **Demo:** two agents coordinated peer-to-peer via `peers → send → recv --wait` — no relay, no hand-rolled poll loop (cf. #14). Details: `experiments/BATTERY_RESULTS.md` "Follow-ups".
