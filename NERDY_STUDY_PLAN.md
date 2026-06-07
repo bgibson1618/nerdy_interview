@@ -279,7 +279,7 @@ Rehearse crisp 60–90s answers:
 
 This stack comes from `NERDY_STACK.md`; the "why Nerdy would pick it" notes below are informed inference, not confirmed internal architecture.
 
-**▶ Likely interviewer questions for every technology below — with model answers, plus deep zero-to-competent primers for GraphQL & gRPC:** [`study/exercises/stack-interview-qa.md`](study/exercises/stack-interview-qa.md). The review is in TypeScript, but the engineer may probe anything here.
+**▶ Likely interviewer questions for every technology below — each with a senior-depth primer, six graduated questions + model answers (incl. the classic gotcha/failure-mode), and one-liners:** [`study/exercises/stack-interview-qa.md`](study/exercises/stack-interview-qa.md). Covers TS/JS, React, MySQL, SQL Server, OAuth, REST, Webhooks, GraphQL, and gRPC at the same depth. The review is in TypeScript, but the engineer may probe anything here.
 
 ### TypeScript/JavaScript
 - **What it is:** JavaScript is the browser's native language and also runs on servers through Node.js; TypeScript adds static types, interfaces, generics, and safer tooling while still compiling to JavaScript.
