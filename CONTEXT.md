@@ -77,27 +77,35 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       `/agent-roster:*` slash commands confirmed live.
 
 ## Open threads to pull next (user will pick one after /compact)
+- [x] **Harden the A2A primitive** — DONE (plugin local commit `090c877`, **v0.3.0**). Typed JSON
+  envelopes (`jq -nc`, control-char safe), request/reply correlation, push delivery (real inotify +
+  poll fallback), 1:N fan-in. New commands `reply`/`request`/`gather` on top of `send`/`recv`; `note`
+  dual-writes jsonl; `commands/{peers,send,recv,reply,request,gather}.md` added for the `/agent-roster:*`
+  surface. Two workflow review passes (spec + impl-verify) → `docs/a2a-hardening-spec.md` +
+  `tests/a2a-hardening.sh` (**46 passing**). Verify pass caught real bugs the green tests missed
+  (numeric-flag `set -u` crash, dash-leading bodies, char-vs-byte cap → silent loss, `warn`→stdout
+  polluting gather JSON, delivery-failure not isolated) — all fixed + regression-tested.
+- **Drift-detection experiment** (agreed NEXT): does cross-backend beat single-claude on the
+  *doc↔code coherence* task `/sanity` actually does? (#12 ranking was bug-finding, not coherence —
+  untested for this.) The hardened `gather` is now the natural primitive to run the multi-backend panel.
 - **Other A2A patterns** (never run): self-organizing work division, leader election, shared blackboard.
-- **Harden the A2A primitive**: structured/typed message envelopes, request/reply correlation, push
-  instead of poll, multi-peer fan-in. (Today: `peers` / `send [all] --from` / `recv [--wait]` + `run-role --peers`.)
 - **`/sanity` skill upgrade** (`~/.claude/skills/sanity/`, standalone; currently 1 fresh-claude Task subagent):
   the user is doing their own tweaks but may want help wiring a claude+codex review *panel* (per the
   EXPERIMENTS #12 recommendation). No plugin dependency needed for an all-claude panel; codex needs a
   shell-out (roster or direct `codex exec`).
-- **Drift-detection experiment**: does cross-backend beat single-claude on the *doc↔code coherence* task
-  `/sanity` actually does? (The #12 ranking was measured on bug-finding, not coherence — untested for this.)
 - **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team`; default
   `verifier`→claude for large open-ended; a standard "emit artifact" prompt posture; interactive durable
-  transcript. Plus: add `commands/send.md|recv.md|peers.md` so A2A gets `/agent-roster:*` slash commands.
+  transcript. (A2A slash-command docs — now DONE in 090c877.)
 
 ## Resume note (after /compact)
 Nothing live depends on transient state: no agents running (only the Orchestrator window),
 `work/agents/` empty, working tree clean. All results committed — **study repo pushed to GitHub
 (`84455ed`)**; **plugin committed locally (`b4882c8`)**. `/tmp/{herd,debate,exp,exp3}/*` scaffolding
-is disposable (ground truth was node-verified; durable copies are in `experiments/`). On resume:
+is disposable (ground truth was node-verified; durable copies are in `experiments/`). **Plugin now at
+local commit `090c877` (v0.3.0 — hardened A2A; local-only, do not push the plugin repo).** On resume:
 **stay in orchestrator mode + window 0 named `Orchestrator`** (already set), re-read live `git`/`tmux`
-state, then **ask the user which Open Thread to pull** (list above) — the A2A/debate/herding line is
-closed. Gotcha to remember: roster agents run with `bypassPermissions`/`workspace-write` can leave
+state. The A2A-hardening thread is **done**; **drift-detection is the agreed next thread** — confirm
+with the user before starting it. Gotcha to remember: roster agents run with `bypassPermissions`/`workspace-write` can leave
 stray files in the repo root (a debate agent left a `test.js`, since removed) — prefer scoped
 permissions and sweep `work/agents/` + stray files after experiment runs.
 
