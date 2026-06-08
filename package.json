@@ -8,6 +8,7 @@
     "build": "tsc -p .",
     "start": "node dist/index.js",
     "practice": "tsx watch study/practice/scratch.ts",
+    "debug": "tsx study/practice/debug/problems.ts",
     "check:practice": "tsc -p study/practice"
   },
   "dependencies": {
