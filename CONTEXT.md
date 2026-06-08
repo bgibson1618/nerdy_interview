@@ -166,7 +166,8 @@ content source `slides/DECK_BRIEF.md`). Built via a multi-agent pipeline (palett
 live styles → brief → 2 ui-designer variants → judge → accuracy+HTML verify → finalizer), every
 number checked vs EXPERIMENTS.md, render-verified in-browser. Everything CLOSED.
 
-- **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`);
+- **Current HEADs:** study repo **pushed — `main` @ `2320b71`, in sync with `origin`** (re-check with
+  `git -C ~/projects/agent-roster-observe-smoke status -sb` on resume; the SHA advances each session);
   **plugin `agent_roster` is LOCAL-ONLY at `98e91ab` (v0.4.0) — commit, do NOT
   push the plugin repo** (standing user constraint).
 - **Gemini gotcha (important):** gemini limits are **per-model**. The CLI default (pro) free-tier window
@@ -186,13 +187,15 @@ number checked vs EXPERIMENTS.md, render-verified in-browser. Everything CLOSED.
   `package.json`/`tsconfig.json`. `npm install` done; `node_modules/`, `dist/`, `work/` gitignored.
 - Roster findings + open questions: `EXPERIMENTS.md`.
 - Plugin: `/home/bgibs/projects/agent_roster` (CLI: `bin/agent-roster`; adapters under
-  `adapters/tmux/`). Many fixes committed this session — see its `git log`. Open plugin items:
-  interactive durable-transcript gap (#5); consider defaulting `verifier`→claude (codex
-  declines large open-ended reviews); per-instance manifest/task config (confirmed in #7 —
-  `team` keys prompts per role, not per instance); a standard "emit artifact" posture for
-  writer agents (#7).
+  `adapters/tmux/`). v0.4.0 at `98e91ab`. **Closed in v0.4.0:** ~~interactive durable-transcript~~
+  (`transcript` cmd + auto on `stop`); ~~verifier→claude default~~ (shipped + user-signed-off);
+  ~~"emit artifact" posture~~ (`--emit-artifact` on `run`+`team`). **Still open:** per-instance
+  manifest/task config for `team` (confirmed in #7 — `team` keys prompts per role, not per
+  instance; overlaps the parked Roster Config UI).
 
 ## Resume action
-Confirm orchestrator mode is intact and window 0 is still named `Orchestrator`, then re-read
-live `git`/`tmux` state (it can change during a compact) before continuing with Phase 3 or
-whatever the user directs next.
+Everything from Phases 0–9 is **CLOSED** (see the build-progress ledger and the resume note above).
+On resume: confirm orchestrator mode + window 0 named `Orchestrator`, re-read live `git`/`tmux` state
+(it changes across a compact), then **raise the one open thread — the parked Roster Config UI
+discussion** (or take new direction). Do NOT auto-reopen closed work. If the interview-prep track is
+active, the only standing study task is the current day's warm-up in `NERDY_STUDY_PLAN.md`.

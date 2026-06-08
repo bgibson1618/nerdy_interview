@@ -10,8 +10,11 @@ whole roster rests on. Together they map the design space of leaderless coordina
 | **[leader-election](leader_election/)** (#21) | message-passing, term-based | direct A2A messages | 28/30; N≤5 + N=7-steady perfect; N=7-failover = transport ceiling | 3 backends elect a leader over A2A |
 | **[shared-blackboard](shared_blackboard/)** (#22) | shared-state, multi-level | **stigmergy — board only** | 20/20, zero violations | 3 backends build a fact-sheet, **0 messages** |
 
-Each has a `PREREG.md` (questions, protocol, pass bar), the mechanism scripts, a `RESULTS.md`,
-and a `live_demo/` with a reproducible `demo_result.md`.
+The two newer patterns (`leader_election/`, `shared_blackboard/`) each have a `PREREG.md`
+(questions, protocol, pass bar), the mechanism scripts, a `RESULTS.md`, and a `live_demo/` with a
+reproducible `demo_result.md`. The original `work_division/` predates that layout: it carries its
+README, the mechanism scripts (`board.sh`, `test_exactly_once.sh`), and an inline `demo_result.md`
+(no separate `PREREG`/`RESULTS`).
 
 ## The three modes
 - **Work-division** — workers pull tasks from a shared list. The only coordination is an **atomic
