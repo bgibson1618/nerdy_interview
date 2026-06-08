@@ -17,3 +17,6 @@ experiments/a2a_patterns/work_division/demo/
 
 # Local Claude Code harness state (scheduled-task locks, etc.)
 .claude/
+
+# Playwright MCP scratch (snapshots/screenshots/console logs)
+.playwright-mcp/

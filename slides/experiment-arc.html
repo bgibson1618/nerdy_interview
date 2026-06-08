@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Composing a reliable multi-agent system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-ink:#202344;
+    --bg-deep:#0f0928;
+    --bg-panel:#161c2c;
+    --surface:rgba(255,255,255,0.05);
+    --surface-2:rgba(255,255,255,0.08);
+    --surface-line:rgba(255,255,255,0.12);
+    --text:#ffffff;
+    --text-dim:rgba(255,255,255,0.72);
+    --text-muted:#6c6e87;
+    --violet:#a110ff;
+    --purple:#5824c5;
+    --cyan:#17e2ea;
+    --mint:#35dd8b;
+    --blue:#1756e2;
+    --yellow:#ffcb19;
+    --orange:#ff800d;
+    --red:#ff4e00;
+    --lilac:#9e97ff;
+    --grad:linear-gradient(110deg,#a110ff,#1756e2 55%,#9e97ff);
+    --sans:'Poppins',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular','Cascadia Code',Menlo,Consolas,monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#05030f;
+    color:var(--text);
+    font-family:var(--sans);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- Stage / scaling ---------- */
+  #stage{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  #deck{
+    position:relative;
+    width:1280px;
+    height:720px;
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    background:var(--bg-ink);
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(14px);
+    transition:opacity .5s ease, transform .5s ease, visibility .5s;
+    display:flex;
+    flex-direction:column;
+    padding:64px 84px 70px;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:none;z-index:2}
+  .slide.prev{transform:translateY(-14px)}
+
+  /* texture: faint grid + corner glow, never rainbow */
+  .slide::before{
+    content:"";
+    position:absolute;inset:0;
+    background:
+      radial-gradient(900px 500px at 88% -8%, rgba(161,16,255,0.16), transparent 60%),
+      radial-gradient(700px 500px at -6% 108%, rgba(23,226,234,0.07), transparent 60%);
+    pointer-events:none;
+  }
+  .slide::after{
+    content:"";
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
+    pointer-events:none;
+  }
+  .slide > *{position:relative;z-index:1}
+
+  /* ---------- Shared type ---------- */
+  .kicker{
+    font-size:14px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--cyan);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .kicker .exp{
+    font-family:var(--mono);
+    color:var(--lilac);
+    letter-spacing:.05em;
+    font-weight:500;
+    font-size:13px;
+  }
+  .kicker::before{
+    content:"";
+    width:30px;height:2px;
+    background:var(--grad);
+    display:inline-block;
+    border-radius:2px;
+  }
+
+  h1.claim{
+    font-weight:700;
+    font-size:54px;
+    line-height:1.06;
+    letter-spacing:-0.015em;
+    max-width:18ch;
+  }
+  h1.claim.big{font-size:62px;max-width:15ch}
+  h1.claim .em{color:var(--lilac)}
+  h1.claim .mint{color:var(--mint)}
+  h1.claim .cyan{color:var(--cyan)}
+  h1.claim .red{color:var(--red)}
+  h1.claim .yellow{color:var(--yellow)}
+  h1.claim .grad{
+    background:var(--grad);
+    -webkit-background-clip:text;background-clip:text;
+    color:transparent;
+  }
+
+  .lede{
+    font-size:21px;
+    line-height:1.5;
+    color:var(--text-dim);
+    max-width:62ch;
+    font-weight:300;
+  }
+  .lede b, .lede strong{color:var(--text);font-weight:600}
+  .lede .mono{font-family:var(--mono);font-size:.92em}
+
+  .body-grid{
+    display:flex;
+    flex:1;
+    gap:54px;
+    margin-top:34px;
+    min-height:0;
+  }
+  .col{flex:1;display:flex;flex-direction:column;gap:18px;min-width:0}
+  .spacer{flex:1}
+
+  /* data list — editorial, few boxes */
+  .points{list-style:none;display:flex;flex-direction:column;gap:18px}
+  .points li{
+    font-size:18px;
+    line-height:1.45;
+    color:var(--text-dim);
+    padding-left:24px;
+    position:relative;
+    font-weight:300;
+  }
+  .points li b{color:var(--text);font-weight:600}
+  .points li::before{
+    content:"";
+    position:absolute;left:0;top:11px;
+    width:9px;height:9px;border-radius:2px;
+    background:var(--violet);
+    transform:rotate(45deg);
+  }
+  .points li.good::before{background:var(--mint)}
+  .points li.warn::before{background:var(--yellow)}
+  .points li.bad::before{background:var(--red)}
+  .points li.data::before{background:var(--cyan)}
+
+  .mint{color:var(--mint)}
+  .cyan{color:var(--cyan)}
+  .red{color:var(--red)}
+  .yellow{color:var(--yellow)}
+  .violet{color:var(--violet)}
+  .lilac{color:var(--lilac)}
+  .mono{font-family:var(--mono)}
+
+  /* Big metric numerals */
+  .metric{
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .metric .num{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:64px;
+    line-height:1;
+    letter-spacing:-0.02em;
+  }
+  .metric .lbl{
+    font-size:13.5px;
+    color:var(--text-dim);
+    letter-spacing:.02em;
+    max-width:24ch;
+    line-height:1.35;
+  }
+  .metric.mint .num{color:var(--mint)}
+  .metric.cyan .num{color:var(--cyan)}
+  .metric.red .num{color:var(--red)}
+  .metric.yellow .num{color:var(--yellow)}
+  .metric.violet .num{color:var(--lilac)}
+
+  .metric-row{display:flex;gap:46px;flex-wrap:wrap}
+
+  /* small stat card (sparingly) */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--surface-line);
+    border-radius:14px;
+    padding:22px 24px;
+    backdrop-filter:blur(2px);
+  }
+  .card h4{
+    font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--text-muted);font-weight:600;margin-bottom:12px;
+  }
+
+  .tag{
+    font-family:var(--mono);
+    font-size:13px;
+    padding:5px 12px;
+    border-radius:999px;
+    background:var(--surface);
+    border:1px solid var(--surface-line);
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .tag .dot{color:var(--text-muted)}
+
+  /* ---------- Slide 1 title ---------- */
+  .title-slide{justify-content:center;align-items:flex-start;padding:0 100px}
+  .title-slide::after{opacity:.5}
+  .title-mark{
+    font-family:var(--mono);
+    font-size:14px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--cyan);margin-bottom:30px;
+  }
+  .title-slide h1{
+    font-weight:800;
+    font-size:84px;
+    line-height:0.99;
+    letter-spacing:-0.025em;
+    max-width:16ch;
+    background:linear-gradient(180deg,#ffffff,#cfc6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title-slide .accent-line{
+    width:120px;height:6px;border-radius:6px;background:var(--grad);
+    margin:34px 0 30px;
+  }
+  .title-slide .sub{
+    font-size:23px;color:var(--text-dim);font-weight:300;font-style:italic;
+    max-width:58ch;line-height:1.45;
+  }
+  .chips{display:flex;gap:14px;margin-top:42px;flex-wrap:wrap}
+  .title-foot{
+    position:absolute;bottom:72px;left:100px;right:100px;
+    font-size:14px;color:var(--text-muted);
+    display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid var(--surface-line);padding-top:18px;
+    z-index:1;
+  }
+
+  /* ---------- Envelope (slide 7) ---------- */
+  .envelope{
+    font-family:var(--mono);
+    background:linear-gradient(160deg,#13182b,#0f0928);
+    border:1px solid var(--surface-line);
+    border-radius:14px;
+    padding:24px 26px;
+    font-size:15px;
+    line-height:1.85;
+    box-shadow:0 30px 70px -40px rgba(161,16,255,.5);
+    overflow:auto;
+    white-space:pre;
+    tab-size:2;
+  }
+  .envelope .k{color:var(--cyan)}
+  .envelope .v{color:#e9e6ff}
+  .envelope .p{color:var(--text-muted)}
+  .envelope .accent{color:var(--lilac)}
+
+  /* ---------- Comparison table (slide 10) ---------- */
+  table.cmp{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    margin-top:18px;
+    font-size:17px;
+  }
+  table.cmp th{
+    text-align:left;
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--text-muted);font-weight:600;
+    padding:0 18px 14px;
+  }
+  table.cmp td{
+    padding:18px;
+    border-top:1px solid var(--surface-line);
+    color:var(--text-dim);
+    vertical-align:top;
+    line-height:1.4;
+  }
+  table.cmp tr td:first-child{
+    font-weight:600;color:var(--text);
+    font-family:var(--mono);font-size:15.5px;
+  }
+  table.cmp tbody tr:hover td{background:rgba(255,255,255,0.03)}
+  table.cmp td b{color:var(--text)}
+  .pill{
+    display:inline-block;font-family:var(--mono);font-size:13.5px;
+    padding:3px 10px;border-radius:7px;font-weight:500;
+  }
+  .pill.mint{background:rgba(53,221,139,.14);color:var(--mint)}
+  .pill.cyan{background:rgba(23,226,234,.14);color:var(--cyan)}
+  .pill.yellow{background:rgba(255,203,25,.14);color:var(--yellow)}
+
+  /* result status chips (test-dashboard style: glowing leading dot + filled pill) */
+  .res-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-weight:600;font-size:13.5px;
+    padding:5px 11px;border-radius:7px;white-space:nowrap;
+  }
+  .res-chip::before{content:"";width:7px;height:7px;border-radius:50%}
+  .res-chip.pass{color:var(--mint);background:rgba(53,221,139,.1);border:1px solid rgba(53,221,139,.35)}
+  .res-chip.pass::before{background:var(--mint);box-shadow:0 0 8px var(--mint)}
+  .res-chip.soft{color:var(--yellow);background:rgba(255,203,25,.1);border:1px solid rgba(255,203,25,.35)}
+  .res-chip.soft::before{background:var(--yellow);box-shadow:0 0 8px var(--yellow)}
+  .res-chip.fail{color:var(--red);background:rgba(255,78,0,.1);border:1px solid rgba(255,78,0,.35)}
+  .res-chip.fail::before{background:var(--red);box-shadow:0 0 8px var(--red)}
+
+  /* one-line "so-what" closer at slide foot */
+  .sowhat{
+    margin-top:auto;padding-top:18px;
+    font-size:17px;line-height:1.4;color:var(--text-dim);font-weight:300;
+    border-top:1px solid var(--surface-line);
+  }
+  .sowhat b{color:var(--text);font-weight:600}
+  .sowhat .arrow{color:var(--lilac);font-family:var(--mono);font-weight:700;margin-right:8px}
+
+  /* ---------- Takeaways ---------- */
+  .takeaways{display:flex;flex-direction:column;gap:20px;margin-top:30px}
+  .takeaway{
+    display:flex;gap:22px;align-items:baseline;
+  }
+  .takeaway .idx{
+    font-family:var(--mono);font-size:15px;color:var(--lilac);
+    font-weight:700;min-width:32px;
+  }
+  .takeaway .txt{font-size:20px;line-height:1.4;color:var(--text-dim);font-weight:300}
+  .takeaway .txt b{color:var(--text);font-weight:600}
+
+  /* ---------- Chrome: progress + counter ---------- */
+  #chrome{
+    position:fixed;left:0;right:0;bottom:0;
+    height:46px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px;
+    z-index:50;
+    pointer-events:none;
+  }
+  #dots{display:flex;gap:9px;pointer-events:auto}
+  .dot{
+    width:9px;height:9px;border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    cursor:pointer;border:none;padding:0;
+    transition:all .25s ease;
+  }
+  .dot:hover{background:rgba(255,255,255,0.45);transform:scale(1.15)}
+  .dot.on{
+    background:var(--violet);
+    box-shadow:0 0 0 4px rgba(161,16,255,0.18);
+    width:26px;border-radius:6px;
+  }
+  #counter{
+    font-family:var(--mono);font-size:13px;color:var(--text-muted);
+    letter-spacing:.08em;pointer-events:auto;
+  }
+  #counter b{color:var(--text)}
+  #brand{
+    font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--text-muted);font-weight:600;pointer-events:auto;
+  }
+  #brand .dotmark{color:var(--violet)}
+
+  /* progress bar at very top */
+  #pbar{
+    position:fixed;top:0;left:0;height:3px;width:0;
+    background:var(--grad);z-index:60;transition:width .45s ease;
+  }
+
+  .hint{
+    position:fixed;bottom:54px;right:26px;
+    font-size:11px;color:var(--text-dim);z-index:50;
+    font-family:var(--mono);opacity:.75;
+  }
+
+  @media print{
+    body{overflow:visible;background:#fff}
+    #chrome,#pbar,.hint{display:none}
+    #stage{position:static}
+    #deck{transform:none!important;width:1280px;height:720px}
+    .slide{
+      opacity:1!important;visibility:visible!important;transform:none!important;
+      position:relative;page-break-after:always;break-after:page;
+      margin:0 auto;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="pbar"></div>
+<div id="stage">
+  <div id="deck">
+
+    <!-- ============ 1 — TITLE ============ -->
+    <section class="slide title-slide active" data-title="Title">
+      <div class="title-mark">// experiment log · 2026</div>
+      <h1>Composing a reliable multi-agent system</h1>
+      <div class="accent-line"></div>
+      <p class="sub">An experiment log — characterizing, hardening, and self-organizing a cross-backend agent roster.</p>
+      <div class="chips">
+        <span class="tag"><span class="mono">codex</span> <span class="dot">·</span> <span class="mono">gemini</span> <span class="dot">·</span> <span class="mono">claude</span></span>
+        <span class="tag"><span class="cyan">22</span> ground-truthed experiments</span>
+        <span class="tag mono">agent_roster</span>
+      </div>
+      <div class="title-foot">
+        <span>Built + run on a local observable roster <span class="mono">(tmux)</span></span>
+        <span class="mono">2026</span>
+      </div>
+    </section>
+
+    <!-- ============ 2 — SYSTEM UNDER TEST ============ -->
+    <section class="slide" data-title="The system under test">
+      <div class="kicker">The system under test <span class="exp">/ agent_roster</span></div>
+      <h1 class="claim">An <span class="grad">observable</span> multi-agent roster — one backend CLI per pane.</h1>
+      <div class="body-grid">
+        <div class="col">
+          <p class="lede" style="margin-top:6px">
+            Each agent is a backend CLI — <b>codex</b>, <b>gemini</b>, or <b>claude</b> — launched into its
+            own <b>tmux pane</b>, with a durable run dir and a peer-to-peer message channel.
+          </p>
+          <div class="card" style="margin-top:8px">
+            <h4>Per-agent run dir</h4>
+            <div class="mono" style="font-size:15px;line-height:2;color:var(--text-dim)">
+              <span class="cyan">prompt</span> · <span class="cyan">output</span> · <span class="cyan">status</span> · <span class="cyan">events.jsonl</span><br>
+              <span style="color:var(--text-muted)">+ a peer-to-peer (A2A) message channel</span>
+            </div>
+          </div>
+        </div>
+        <div class="col" style="justify-content:center">
+          <div class="card" style="border-color:rgba(161,16,255,.35);background:linear-gradient(160deg,rgba(161,16,255,.08),var(--surface))">
+            <h4 style="color:var(--lilac)">The question driving all 22 experiments</h4>
+            <p style="font-size:22px;line-height:1.45;font-weight:300;color:var(--text)">
+              How do you compose <b style="font-weight:600">heterogeneous LLM backends</b> into a system
+              that's actually <span class="mint">reliable</span> — and <span class="red">where does it break?</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3 — METHODOLOGY ============ -->
+    <section class="slide" data-title="Methodology">
+      <div class="kicker">Methodology <span class="exp">/ why trust any of this</span></div>
+      <h1 class="claim">Every finding is <span class="mint">ground-truthed</span>, replicated, and pre-registered.</h1>
+      <div class="body-grid">
+        <div class="col">
+          <ul class="points" style="margin-top:6px">
+            <li class="good">Often <b>blinded</b> — the judge doesn't know which backend produced what.</li>
+            <li class="data">Decisions trace to <b>data, not vibes</b>. The numbers that follow are earned.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="card" style="border-color:rgba(23,226,234,.3)">
+            <h4 style="color:var(--cyan)">The control is the linchpin · #2</h4>
+            <p style="font-size:18.5px;line-height:1.5;font-weight:300;color:var(--text-dim)">
+              A single <b style="color:#fff;font-weight:600">gemini control</b> turned
+              <span class="red">"codex is broken"</span> into the real cause — an
+              <b style="color:#fff;font-weight:600">adapter bug clobbering codex's output</b>.
+            </p>
+            <p style="font-size:16px;margin-top:14px;color:var(--yellow)">
+              Without it, the wrong conclusion ships.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4 — BACKEND CHARACTERIZATION ============ -->
+    <section class="slide" data-title="Backend characterization">
+      <div class="kicker">Backend characterization <span class="exp">/ #4 · #8 · #1 · #9</span></div>
+      <h1 class="claim big">Code-with-framing quality: <span class="cyan">claude &gt; codex &gt; gemini</span>.</h1>
+      <p class="lede" style="margin-top:2px">Head-to-head, identical tasks — only the backend varies.</p>
+      <div class="body-grid" style="margin-top:26px">
+        <div class="col">
+          <ul class="points">
+            <li class="good">Survives <b>blind cross-backend judging</b> — <span class="exp mono cyan">#8</span> claude was the only candidate all three judges found <b>technically error-free</b>.</li>
+            <li class="warn"><i>Only codex self-preferred.</i></li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="card">
+            <h4>codex's one real reliability limit · #1 / #9</h4>
+            <p style="font-size:17.5px;line-height:1.5;font-weight:300;color:var(--text-dim)">
+              It <span class="red">declines large, open-ended reviews</span> — but completes
+              <i>concrete</i> ones fine: a clean <b class="mint">1,200-line, 9-file</b> review.
+            </p>
+            <p style="font-size:16px;margin-top:14px;color:var(--yellow)">
+              The limit is <b style="color:#fff">open-endedness, not size.</b>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5 — SINGLE-AGENT SHIPS ERRORS ============ -->
+    <section class="slide" data-title="Single-agent output ships errors">
+      <div class="kicker">The single-agent ceiling <span class="exp">/ #9</span></div>
+      <h1 class="claim">Even the best single agent <span class="red">ships mistakes.</span></h1>
+      <div class="body-grid" style="align-items:center">
+        <div class="col" style="flex:0 0 38%">
+          <div class="metric red" style="margin-top:10px">
+            <span class="num">~7<span style="font-size:34px;color:var(--text-muted)"> / 9</span></span>
+            <span class="lbl">generated drills had <b style="color:#fff">≥1 answer-key error</b></span>
+          </div>
+        </div>
+        <div class="col">
+          <ul class="points">
+            <li class="good">Two-backend QA catches them — and the <b>consensus items are the reliable signal.</b></li>
+            <li class="data">→ a <b>cross-backend QA pass</b> became a standing part of the generation pipeline.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="sowhat"><span class="arrow">→</span><b>Consensus across backends</b> is what you can trust to ship.</p>
+    </section>
+
+    <!-- ============ 6 — FINDINGS TO ROUTING ============ -->
+    <section class="slide" data-title="From findings to routing decisions">
+      <div class="kicker">From findings to routing <span class="exp">/ battery #12–#16</span></div>
+      <h1 class="claim">Route by <span class="grad">measured strength</span>, not reputation.</h1>
+      <p class="lede" style="margin-top:2px">A ground-truthed backend battery turned characterization into <b>config</b>.</p>
+      <div class="body-grid" style="margin-top:24px;gap:30px">
+        <div class="col card" style="gap:10px;padding:24px">
+          <h4 style="color:var(--mint)">verifier</h4>
+          <p style="font-size:16.5px;line-height:1.45;color:var(--text-dim);font-weight:300">
+            <span class="mono mint">claude</span> for <b style="color:#fff">open-ended gates</b> (codex declines them);
+            <span class="mono cyan">codex</span> for <b style="color:#fff">bounded review</b>.
+          </p>
+        </div>
+        <div class="col card" style="gap:10px;padding:24px">
+          <h4 style="color:var(--cyan)">/sanity</h4>
+          <p style="font-size:16.5px;line-height:1.45;color:var(--text-dim);font-weight:300">
+            <span class="mono">= single <span class="cyan">codex</span></span> — later
+            <b style="color:#fff">validated by #20</b>, not overturned.
+          </p>
+        </div>
+        <div class="col card" style="gap:10px;padding:24px">
+          <h4 style="color:var(--yellow)">gemini</h4>
+          <p style="font-size:16.5px;line-height:1.45;color:var(--text-dim);font-weight:300">
+            <span class="mono yellow">research + judging</span> —
+            <span class="red"><b>NOT</b> the security gate</span>: a repeatable authz/exposure blind spot.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7 — A2A ENVELOPE ============ -->
+    <section class="slide" data-title="A2A messaging primitive">
+      <div class="kicker">A2A · agents talk to each other <span class="exp">/ no relay · v0.4</span></div>
+      <h1 class="claim" style="font-size:46px;max-width:22ch">A peer-to-peer messaging primitive — <span class="cyan">typed JSON envelopes</span>.</h1>
+      <div class="body-grid" style="margin-top:22px">
+        <div class="col" style="flex:0 0 46%;gap:18px">
+          <ul class="points" style="font-size:16.5px">
+            <li class="data"><b>request/reply correlation</b>, broadcast <span class="mono">(send … all)</span>, 1:N fan-in <span class="mono">(gather)</span>.</li>
+            <li class="data"><b>push delivery</b> via inotify; every write <b class="mint">flock-atomic</b>.</li>
+          </ul>
+          <div style="display:flex;gap:16px">
+            <div class="card" style="flex:0 0 auto;padding:18px 22px;border-color:rgba(53,221,139,.3)">
+              <div class="metric mint"><span class="num" style="font-size:42px">46</span></div>
+              <span style="font-size:13.5px;color:var(--text-dim);line-height:1.3">passing tests at <b style="color:#fff">v0.4</b></span>
+            </div>
+            <div class="card" style="flex:1;padding:18px 22px;border-color:rgba(255,203,25,.3)">
+              <h4 style="color:var(--yellow);margin-bottom:8px">verify caught real bugs</h4>
+              <p style="font-size:14px;line-height:1.4;color:var(--text-dim);font-weight:300">
+                numeric-flag crash, char-vs-byte truncation — <b style="color:#fff">missed by the green tests</b>.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col" style="justify-content:center">
+          <div class="envelope">
+<span class="p">{</span>
+  <span class="k">"id"</span><span class="p">:</span>          <span class="accent">"m-0a3f…"</span><span class="p">,</span>
+  <span class="k">"ts"</span><span class="p">:</span>          <span class="v">1749330000</span><span class="p">,</span>
+  <span class="k">"from"</span><span class="p">:</span>        <span class="accent">"claude#30"</span><span class="p">,</span>
+  <span class="k">"to"</span><span class="p">:</span>          <span class="accent">"codex#12"</span><span class="p">,</span>
+  <span class="k">"type"</span><span class="p">:</span>        <span class="v">"request"</span><span class="p">,</span>
+  <span class="k">"subject"</span><span class="p">:</span>     <span class="v">"assign-task"</span><span class="p">,</span>
+  <span class="k">"in_reply_to"</span><span class="p">:</span> <span class="p">null,</span>
+  <span class="k">"corr"</span><span class="p">:</span>        <span class="accent">"c-7b1…"</span><span class="p">,</span>
+  <span class="k">"body"</span><span class="p">:</span>        <span class="p">{ … }</span>
+<span class="p">}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8 — NO HERDING ============ -->
+    <section class="slide" data-title="Emergent behavior — no herding">
+      <div class="kicker">Emergent behavior · Asch, for LLMs <span class="exp">/ #17–#19</span></div>
+      <h1 class="claim big">Plant a confident, unanimous <span class="red">WRONG</span> majority. Does the lone correct agent cave?</h1>
+      <div class="body-grid" style="align-items:center;margin-top:22px">
+        <div class="col" style="flex:0 0 34%">
+          <div class="metric mint" style="margin-top:6px">
+            <span class="num">0</span>
+            <span class="lbl"><b style="color:#fff">caves</b> across every paradigm — verifiable <i>and</i> pure-subjective, mild <i>and</i> maximal pressure.</span>
+          </div>
+        </div>
+        <div class="col">
+          <ul class="points">
+            <li class="bad">vs <b>human Asch ~33%</b> conformity.</li>
+            <li class="warn">The subjective false-absolute majority <b>backfired into reactance</b> — agents <i>defended</i> the option the majority called wrong.</li>
+            <li class="good">Frontier LLMs showed <b>no conformity we could induce.</b></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 9 — PANEL VS SINGLE ============ -->
+    <section class="slide" data-title="Drift detection — panel vs single">
+      <div class="kicker">Drift detection · panel vs single <span class="exp">/ #20</span></div>
+      <h1 class="claim" style="font-size:42px;max-width:25ch">For behavioral drift, the earlier <span class="cyan">claude-first ranking reverses</span> — codex wins.</h1>
+      <p class="lede" style="margin-top:2px;font-size:18px"><b>40 blinded, ground-truthed reviews</b> across 4 synthetic projects <span style="color:var(--text-dim)">(the bug-finding ranking, #12)</span>.</p>
+      <div class="body-grid" style="margin-top:18px;gap:24px;flex:1">
+        <div class="col card" style="gap:6px;padding:20px 22px;justify-content:center">
+          <h4>single recall · hard round</h4>
+          <div class="metric mint"><span class="num" style="font-size:60px">0.96</span></div>
+          <div class="mono" style="font-size:15px;color:var(--text-dim);margin-top:2px">
+            <b class="mint" style="font-weight:600">codex</b> &gt; <span style="color:var(--text-dim)">claude 0.90</span> &gt; <span style="color:var(--text-dim)">gemini 0.87</span>
+          </div>
+          <span style="font-size:13.5px;color:var(--text-dim);line-height:1.35;margin-top:6px">best <b style="color:#fff">and</b> most precise — <b style="color:#fff">0 FP</b>.</span>
+        </div>
+        <div class="col card" style="gap:6px;padding:20px 22px;justify-content:center">
+          <h4>union panel vs 3×claude</h4>
+          <div class="metric cyan"><span class="num" style="font-size:60px">0.96<span style="font-size:30px;color:var(--text-muted)"> vs </span><span style="font-size:46px;color:var(--text-dim)">0.92</span></span></div>
+          <span style="font-size:13.5px;color:var(--text-dim);line-height:1.35;margin-top:6px">cross-backend union wins, but only <b class="yellow">+0.04</b> — below the pre-registered <b style="color:#fff">+0.10</b> bar. Diversity &gt; redundancy, marginally.</span>
+        </div>
+        <div class="col card" style="gap:6px;padding:20px 22px;justify-content:center;border-color:rgba(255,78,0,.28);background:linear-gradient(160deg,rgba(255,78,0,.06),var(--surface))">
+          <h4 style="color:var(--red)">universal blind spot</h4>
+          <div class="metric red"><span class="num" style="font-size:60px">0/10</span></div>
+          <span style="font-size:13.5px;color:var(--text-dim);line-height:1.35;margin-top:6px">a <i>removed</i> guard (absence-drift) — <b style="color:#fff">no backend or panel</b> catches an absence with <b class="red">no code trace</b>.</span>
+        </div>
+      </div>
+      <p class="sowhat"><span class="arrow">→</span>keep <span class="mono">/sanity</span> single-codex; union = <b>insurance</b>; add <b>executable checks</b> for absences.</p>
+    </section>
+
+    <!-- ============ 10 — SELF-ORGANIZATION TABLE ============ -->
+    <section class="slide" data-title="Self-organization, three ways">
+      <div class="kicker">Self-organization, three ways <span class="exp">/ the throughline</span></div>
+      <h1 class="claim" style="font-size:44px;max-width:26ch">Three ways roster agents coordinate — with <span class="grad">no orchestrator.</span></h1>
+      <table class="cmp">
+        <thead>
+          <tr><th>Pattern</th><th>Coordination</th><th>Communication</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--lilac)">work-division</td>
+            <td>shared-state <b>atomic claim</b></td>
+            <td>none <span style="color:var(--text-muted)">(pull)</span></td>
+            <td><span class="res-chip pass">exactly-once</span> <span style="color:var(--text-dim)">emergent balance</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--cyan)">leader-election</td>
+            <td>message-passing, term-based</td>
+            <td>direct <b>A2A</b></td>
+            <td><span class="res-chip pass">28/30</span> <span class="res-chip soft">ceiling @ N=7-failover</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--mint)">shared-blackboard</td>
+            <td>shared-state, multi-level</td>
+            <td><b class="mint">stigmergy</b> <span style="color:var(--text-muted)">(0 messages)</span></td>
+            <td><span class="res-chip pass">20/20</span> <span style="color:var(--text-dim)">clean</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ 11 — WORK-DIVISION ============ -->
+    <section class="slide" data-title="Work-division">
+      <div class="kicker">Pattern 1 · work-division <span class="exp">/ atomic claim</span></div>
+      <h1 class="claim">Exactly-once under stress — <span class="mint">work-stealing for free.</span></h1>
+      <p class="lede" style="margin-top:2px">
+        Workers drain a shared board; the only coordination is an <b>atomic <span class="mono">flock</span> claim</b>
+        <span class="mono">(read-find-mark-write)</span>. Two workers never take the same task.
+      </p>
+      <div class="body-grid" style="align-items:center;margin-top:20px">
+        <div class="metric-row" style="gap:60px;width:100%">
+          <div class="metric mint">
+            <span class="num">0</span>
+            <span class="lbl"><b style="color:#fff">double-claims</b> · 10 workers × 100 tasks</span>
+          </div>
+          <div class="metric cyan">
+            <span class="num">10/9/7/4</span>
+            <span class="lbl">speed-skewed workers <b style="color:#fff">split with no balancing logic</b> — emergent load-balance</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 12 — LEADER-ELECTION ============ -->
+    <section class="slide" data-title="Leader-election">
+      <div class="kicker">Pattern 2 · leader-election <span class="exp">/ replication earned this</span></div>
+      <h1 class="claim" style="font-size:46px">Term-based, highest-id-wins over A2A broadcast. <span class="cyan">28/30.</span></h1>
+      <div class="body-grid" style="margin-top:20px;gap:40px">
+        <div class="col">
+          <div class="card" style="border-color:rgba(255,78,0,.25)">
+            <h4 style="color:var(--red)">Replication earned two findings</h4>
+            <ul class="points" style="font-size:15.5px;gap:13px">
+              <li class="bad"><b>Liveness bug:</b> a non-max candidate that missed the single <span class="mono">COORDINATOR</span> broadcast stranded forever (no retry). <span class="mint">Fixed.</span></li>
+              <li class="warn"><b>Transport ceiling:</b> the node loop spins as fast as messages arrive — an ungated heartbeat <i>storms</i> <span class="mono">send … all</span>, each a forked <span class="mono">bash+jq+flock+inotify</span>.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col card" style="justify-content:center;gap:16px;border-color:rgba(53,221,139,.3)">
+          <h4 style="color:var(--text-muted);font-size:13px;letter-spacing:.16em;text-transform:uppercase">After fixes</h4>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <span class="res-chip pass">N=3 perfect</span>
+            <span class="res-chip pass">N=5 perfect · incl. failover</span>
+            <span class="res-chip pass">N=7 steady perfect</span>
+            <span class="res-chip soft">N=7 + failover · 3/5 soft</span>
+          </div>
+          <p style="font-size:15px;line-height:1.45;color:var(--text-dim);font-weight:300;margin-top:4px">
+            Only the failover case stays soft — <b style="color:#fff">bursty jitter</b> the timing budget can't always cover.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 13 — SHARED-BLACKBOARD ============ -->
+    <section class="slide" data-title="Shared-blackboard (stigmergy)">
+      <div class="kicker">Pattern 3 · shared-blackboard <span class="exp">/ stigmergy</span></div>
+      <h1 class="claim">Coordination through <span class="grad">shared state</span> — no messages at all.</h1>
+      <div class="body-grid" style="align-items:center;margin-top:14px">
+        <div class="col">
+          <ul class="points">
+            <li class="data">Agents contribute to a shared multi-level store and <b>react to its state</b> — <b class="mint">0 messages</b>.</li>
+            <li class="good">A completeness-gated synthesis slot, claimed atomically, guarantees the final reduction happens <b>exactly once</b>.</li>
+            <li class="good"><b>No ceiling</b> — it's low-frequency.</li>
+          </ul>
+        </div>
+        <div class="col" style="flex:0 0 32%">
+          <div class="metric mint" style="margin-bottom:18px">
+            <span class="num">20/20</span>
+            <span class="lbl"><b style="color:#fff">zero violations</b></span>
+          </div>
+          <p style="font-size:13.5px;line-height:1.7;color:var(--text-dim);font-family:var(--mono)">
+            no lost work · no double-work<br>synthesis-once · correct vs ground truth<br>synthesis &gt; completeness · emergent balance
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 14 — CROSS-CUTTING INSIGHT ============ -->
+    <section class="slide" data-title="The cross-cutting insight">
+      <div class="kicker">The cross-cutting insight <span class="exp">/ what it all reduces to</span></div>
+      <h1 class="claim big">The <span class="grad">atomic claim</span> is the universal primitive.</h1>
+      <div class="body-grid" style="margin-top:24px;gap:44px">
+        <div class="col">
+          <ul class="points" style="font-size:17.5px">
+            <li class="data">Work-division, the blackboard, and the A2A inbox all reduce to one <b>race-free <span class="mono">flock</span> op</b>. Get it right and leaderless coordination <b>falls out</b>.</li>
+            <li class="good"><b>Reliable broadcast enables consensus</b> — the file-backed inbox provides it; election converges.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="card" style="border-color:rgba(255,78,0,.3);background:linear-gradient(160deg,rgba(255,78,0,.06),var(--surface))">
+            <h4 style="color:var(--red)">The ceiling is the TRANSPORT, not the protocol</h4>
+            <p style="font-size:17px;line-height:1.5;font-weight:300;color:var(--text-dim)">
+              High-frequency message-passing (heartbeats) hits the <b style="color:#fff">fork-per-message cost</b>;
+              low-frequency stigmergy doesn't. <b class="mint">Shared-state scales where chatty message-passing does not.</b>
+            </p>
+            <p style="font-size:15.5px;margin-top:14px;color:var(--yellow)">
+              To lift it, change the <b style="color:#fff">transport</b> (persistent/batched), not the algorithm.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 15 — LIVE CROSS-BACKEND ============ -->
+    <section class="slide" data-title="Live, cross-backend">
+      <div class="kicker">Live, cross-backend <span class="exp">/ not shell stand-ins</span></div>
+      <h1 class="claim">Real <span class="cyan">claude + codex + gemini</span> — no orchestrator.</h1>
+      <div class="body-grid" style="margin-top:18px;gap:40px">
+        <div class="col card" style="padding:26px;gap:14px;border-color:rgba(23,226,234,.3)">
+          <h4 style="color:var(--cyan)">Leader election over A2A</h4>
+          <p style="font-size:17.5px;line-height:1.5;font-weight:300;color:var(--text-dim)">
+            <b style="color:#fff">Unanimous</b> — all three agreed
+            <span class="mono lilac">leader = claude (id 30)</span>; <b class="mint">10 typed envelopes</b>.
+            The leader then assigned a task to a follower over A2A.
+          </p>
+        </div>
+        <div class="col card" style="padding:26px;gap:14px;border-color:rgba(53,221,139,.3)">
+          <h4 style="color:var(--mint)">Zero-message stigmergy</h4>
+          <p style="font-size:17.5px;line-height:1.5;font-weight:300;color:var(--text-dim)">
+            Three agents built a 6-section fact-sheet through a shared board — <b class="mint">0 A2A messages</b>,
+            emergent division, synthesis-once.
+          </p>
+          <p style="font-size:14.5px;color:var(--text-dim)">
+            Faster backends won the section races; honest work-stealing — <span class="yellow">codex got shut out.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 16 — TAKEAWAYS ============ -->
+    <section class="slide" data-title="Takeaways">
+      <div class="kicker">Takeaways <span class="exp">/ what to build first</span></div>
+      <h1 class="claim" style="font-size:44px;max-width:24ch">What an implementer should <span class="grad">take away.</span></h1>
+      <div class="takeaways">
+        <div class="takeaway"><span class="idx">01</span><span class="txt"><b>Route by measured strength, not reputation</b> — claude for framing, codex for bounded review/drift, gemini for research/judging — <span class="red">never the security gate.</span></span></div>
+        <div class="takeaway"><span class="idx">02</span><span class="txt"><b>Consensus / diversity as insurance</b>, not default — it pays only on tasks with divergent blind spots.</span></div>
+        <div class="takeaway"><span class="idx">03</span><span class="txt"><b>Ground truth + replication earns the surprising findings</b> — the codex-for-drift reversal, the no-herding result, the transport ceiling — none were guessable up front.</span></div>
+        <div class="takeaway"><span class="idx">04</span><span class="txt"><b>Lift the transport before scaling chatty protocols.</b> Leaderless coordination works today at small N; the atomic claim is the thing to make first-class.</span></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="chips">
+        <span class="tag"><span class="cyan">22</span> experiments</span>
+        <span class="tag mint">ground-truthed</span>
+        <span class="tag lilac">pre-registered</span>
+        <span class="tag cyan">reproducible</span>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="chrome">
+  <div id="brand"><span class="dotmark">●</span> agent_roster</div>
+  <div id="dots"></div>
+  <div id="counter"><b>1</b> / 16</div>
+</div>
+<div class="hint">← → · space · home/end</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  var dotsWrap = document.getElementById('dots');
+  var counter = document.getElementById('counter');
+  var pbar = document.getElementById('pbar');
+
+  // build dots
+  slides.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'dot';
+    b.setAttribute('aria-label', 'Go to slide ' + (i+1) + (s.dataset.title ? ' — ' + s.dataset.title : ''));
+    b.addEventListener('click', function(){ go(i); });
+    dotsWrap.appendChild(b);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active','prev');
+      if(i === idx) s.classList.add('active');
+      else if(i < idx) s.classList.add('prev');
+    });
+    dots.forEach(function(d, i){ d.classList.toggle('on', i === idx); });
+    counter.innerHTML = '<b>' + (idx+1) + '</b> / ' + total;
+    pbar.style.width = ((idx+1)/total*100) + '%';
+  }
+
+  function go(n){
+    idx = Math.max(0, Math.min(total-1, n));
+    render();
+  }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': next(); e.preventDefault(); break;
+      case ' ': next(); e.preventDefault(); break;
+      case 'ArrowLeft': case 'PageUp': prev(); e.preventDefault(); break;
+      case 'Home': go(0); e.preventDefault(); break;
+      case 'End': go(total-1); e.preventDefault(); break;
+    }
+  });
+
+  // click left/right halves to navigate (ignore interactive chrome / pointable content)
+  document.getElementById('deck').addEventListener('click', function(e){
+    if(e.target.closest('a,button,pre,table,.envelope,.cmp,#dots,.dot')) return;
+    var r = this.getBoundingClientRect();
+    if((e.clientX - r.left) < r.width/2) prev(); else next();
+  });
+
+  // ---------- scale to viewport ----------
+  var deck = document.getElementById('deck');
+  function scale(){
+    var sw = window.innerWidth, sh = window.innerHeight - 46; // leave room for chrome
+    var s = Math.min(sw/1280, sh/720);
+    deck.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', scale);
+  scale();
+  render();
+})();
+</script>
+</body>
+</html>
