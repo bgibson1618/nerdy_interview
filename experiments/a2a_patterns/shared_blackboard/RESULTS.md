@@ -54,8 +54,17 @@ consistent across all 5 skew trials) — emergent work-stealing, no balancing lo
   (claim a shard, post once), it never generates the per-second `send … all` storm that overwhelms
   the fork-per-message transport. Shared-state stigmergy scales where chatty message-passing does not.
 
-## Live-agent layer — deferred (by plan)
-The real-agent demonstration (heterogeneous roster agents filling a dependent fact-sheet through
-the board with **no direct messages** — the most visually striking stigmergy demo) is **held for
-the demo-strategy discussion** the user wants on return. The mechanism layer above is the rigorous,
-ground-truthed result; the live showcase is ready to stand up on request.
+## Live-agent layer — DONE (`live_demo/demo_result.md`)
+Three **real, heterogeneous** agents — `alice` (claude), `bob` (codex), `cleo` (gemini-3-flash) —
+built a shared 6-section stack fact-sheet coordinating **only through the board** (no `--peers`,
+**0 A2A messages**). Outcome: all 6 sections + the executive summary done, `solved=yes`. Observed:
+- **Emergent division, no negotiation:** alice claimed §1,2,4,6; cleo claimed §3,5; **bob got shut
+  out** — the faster two backends won every section race before codex claimed. That's the honest
+  work-stealing dynamic: pull-based, no central assignment, **no starvation *guarantee*** for a
+  slow worker (it just does less, here zero).
+- **Synthesis-once with real agents:** alice's `claim-synthesis` returned `OK`; the others' returned
+  `NOPE` and they correctly stood down ("another agent is writing the synthesis"). Exactly one
+  executive summary, written *after* all sections were posted — stigmergic triggering by real agents.
+- The content is genuinely good (accurate per-topic summaries + a coherent synthesis), reproducible
+  via `live_demo/run_demo.sh`. (Gemini needs `GEMINI_CLI_TRUST_WORKSPACE=true` for headless runs in
+  an untrusted dir — the harness sets it via tmux's global env.)

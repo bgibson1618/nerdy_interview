@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# bb — friendly verbs over blackboard.sh for the live-agent stigmergy demo. Hides the JSON/jq
+# mechanics so an LLM agent coordinates with simple commands and never fights shell quoting.
+# bb, blackboard.sh, and board.jsonl are co-located in the agent's workspace.
+set -uo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BB="$HERE/blackboard.sh"
+BOARD="$HERE/board.jsonl"
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  claim)   # claim <name> -> "SECTION <id>: <topic>" or "EMPTY"
+    name="${1:?name}"
+    res="$("$BB" claim-shard "$BOARD" "$name")"
+    if [[ "$res" == EMPTY ]]; then echo "EMPTY"
+    else id="${res%%$'\t'*}"; topic="$(jq -r '.topic // .' <<<"${res#*$'\t'}")"; echo "SECTION $id: $topic"; fi ;;
+  post)    # post <id> <name> <text...>
+    id="${1:?id}"; name="${2:?name}"; shift 2; text="$*"
+    "$BB" post-partial "$BOARD" "$id" "$name" "$(jq -nc --arg t "$text" '{text:$t}')"
+    echo "posted section $id" ;;
+  sections) # list section summaries posted so far
+    "$BB" dump "$BOARD" | jq -r 'select(.kind=="shard" and .partial!=null) | "[\(.id)] \(.payload.topic): \(.partial.text)"' ;;
+  synth)   # synth <name> -> OK (you may write the exec summary) | NOPE
+    "$BB" claim-synthesis "$BOARD" "${1:?name}" ;;
+  final)   # final <name> <text...>
+    name="${1:?name}"; shift; text="$*"
+    "$BB" post-final "$BOARD" "$name" "$(jq -nc --arg t "$text" '{text:$t}')"
+    echo "posted executive summary" ;;
+  state)   "$BB" state "$BOARD" ;;
+  *) echo "usage: bb claim|post|sections|synth|final|state" >&2; exit 2 ;;
+esac

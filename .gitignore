@@ -14,3 +14,6 @@ experiments/drift_corpus/_harness/runs/
 experiments/drift_corpus/_harness/judge_inbox/R*.md
 experiments/drift_corpus/_harness/*.log
 experiments/a2a_patterns/work_division/demo/
+
+# Local Claude Code harness state (scheduled-task locks, etc.)
+.claude/

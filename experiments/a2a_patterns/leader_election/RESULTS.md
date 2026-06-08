@@ -90,8 +90,18 @@ same-term split-brain occurred in the definitive battery.
   worst-case (not mean) propagation time** and keep the backstop term-bump conservative — a
   premature bump is what turns a liveness hiccup into a safety violation.
 
-## Live-agent layer — deferred (by plan)
-The real-heterogeneous-agent demonstration is **intentionally held for the demo-strategy
-discussion** the user wants on return ("the best way to demo the results of all our experiments").
-The mechanism layer above is the rigorous, ground-truthed result; a live N≤3 election over A2A
-(comfortably inside the safe envelope) is the natural showcase and is ready to stand up on request.
+## Live-agent layer — DONE (`live_demo/demo_result.md`)
+Three **real, heterogeneous** peers — `alice` (claude, id 30), `bob` (codex, id 20), `cleo`
+(gemini-3-flash, id 10) — ran the highest-id election over the hardened A2A primitive, **no
+orchestrator**. Outcome: **unanimous** — all three independently report `leader = alice id 30`.
+The 10-envelope trace shows the whole protocol in real agent traffic: every node broadcast its
+`ID=..`, alice (the max) declared `LEADER=alice ID=30` to all, then exercised leadership by
+assigning `TASK report-status` to bob, who replied `STATUS ready (bob)`. N=3 sits comfortably
+inside the safe envelope, so it converged cleanly.
+
+One honest timing detail (and it echoes the mechanism finding): alice had **closed its recv window
+before bob's `STATUS ready` arrived** — the reply is in alice's inbox (00:10:42), but alice noted
+it "received none within timeout." The *election* was unanimous and correct; the missed
+acknowledgement is exactly the "a node stops listening at the wrong moment" timing class the
+mechanism layer studies — here harmless, since the ack was optional. Reproducible via
+`live_demo/run_demo.sh` (gemini needs `GEMINI_CLI_TRUST_WORKSPACE=true`, set by the harness).

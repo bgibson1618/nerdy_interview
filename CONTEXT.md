@@ -92,9 +92,12 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       reviewed by a Workflow (17 findings, all fixed)**; 46/46 A2A tests still green. (b) **EXPERIMENTS
       #21 leader election** — 28/30; replication exposed a liveness bug (fixed) + a **transport ceiling at
       N=7 failover** (fork-per-message storm/jitter); N≤5 + N=7-steady perfect. (c) **EXPERIMENTS #22
-      shared blackboard / stigmergy** — **20/20**, clean (no ceiling; low-frequency). Live-agent layers
-      for both **deferred to the demo-strategy discussion** the user wants on return. See `experiments/
-      a2a_patterns/{leader_election,shared_blackboard}/`.
+      shared blackboard / stigmergy** — **20/20**, clean (no ceiling; low-frequency). (d) **Live-agent
+      demo layers BUILT** for both (user asked for reproducible artifacts + a trilogy writeup): 3 real
+      heterogeneous agents (claude/codex/gemini-flash) elected a leader unanimously over A2A (10
+      envelopes) and built a fact-sheet through pure stigmergy (0 messages) — `…/live_demo/demo_result.md`
+      each; trilogy index `experiments/a2a_patterns/README.md`. **Verifier→claude default: user signed
+      off.** See `experiments/a2a_patterns/{leader_election,shared_blackboard}/`.
 
 ## Open threads to pull next (user will pick one after /compact)
 - [x] **Harden the A2A primitive** — DONE (plugin local commit `090c877`, **v0.3.0**). Typed JSON
@@ -134,8 +137,11 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   leader_election/`). 28/30; liveness bug found+fixed; N=7-failover transport ceiling characterized.
 - [x] **A2A pattern: shared blackboard / stigmergy** — DONE (EXPERIMENTS #22; `.../shared_blackboard/`).
   20/20, zero violations; the clean, ceiling-free pattern.
-- **Live-agent demo layers** (both A2A patterns) — **deferred by plan** to the demo-strategy discussion
-  the user wants on return ("best way to demo the results of all our experiments"). Ready to stand up.
+- [x] **Live-agent demo layers** (both A2A patterns) — **DONE** (user asked: reproducible artifacts +
+  trilogy writeup, heterogeneous backends). 3 real claude/codex/gemini agents: unanimous A2A leader
+  election + zero-message stigmergy fact-sheet. `…/live_demo/demo_result.md` + `experiments/a2a_patterns/
+  README.md` (the "self-organization, three ways" trilogy index). The demo *strategy* (how to present
+  these — video/walkthrough) is still the open discussion; the substance now exists to build it from.
 - **Roster Config UI** (USER'S idea, PARKED — don't start unprompted): a configurator that lets the user set
   preferred agents/models/prompts per task → emits a **manifest JSON** the orchestrator uses to spawn the
   `team`. User wants to **discuss this on return**. (Overlaps the roster "per-instance team task config" item.)
@@ -148,12 +154,12 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
 Nothing live depends on transient state: **no agents running (only the Orchestrator window)**,
 `work/agents/` empty, working tree clean & pushed. On resume: **stay in orchestrator mode + window 0
 named `Orchestrator`**, re-read live `git`/`tmux` state.
-**Two things the user explicitly wants to do on return** (don't auto-start; raise them):
+**Open with the user** (don't auto-start; raise them):
 1. **Discuss the Roster Config UI** idea (parked configurator → manifest JSON).
-2. **Decide the demo strategy** for "the results of all our experiments" — the A2A live-agent demo
-   layers (#21/#22) are built-and-ready-but-deferred for exactly this.
-Also **flag for review:** the v0.4.0 **verifier default → claude** is a behavioral change (evidence-backed
-but worth a conscious sign-off). Everything else this session is CLOSED.
+2. **Decide the demo strategy** for "the results of all our experiments." The A2A live-agent demo
+   layers (#21/#22) are now **built** (`…/live_demo/demo_result.md` + the trilogy index); the open
+   part is how to PRESENT them (a `/demo` walkthrough/video over the trilogy is the natural next step).
+**Resolved this session:** verifier→claude default — **user signed off** ("we have the data"). Everything CLOSED.
 
 - **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`);
   **plugin `agent_roster` is LOCAL-ONLY at `98e91ab` (v0.4.0) — commit, do NOT

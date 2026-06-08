@@ -28,7 +28,9 @@ faster ones, every trial. **action:** the cleanest of the three patterns — its
 requirement is the **atomic claim** the whole roster already rests on, plus a level + completeness
 gate. Unlike #21 it has **no scale ceiling**: it is low-frequency (touch the board a few times,
 not many times/sec), so it never stresses the transport's per-message cost. A `board`/`blackboard`
-subcommand is a natural graduation candidate.
+subcommand is a natural graduation candidate. **Live demo** (`live_demo/`): 3 real heterogeneous
+agents built a stack fact-sheet through the board with **0 A2A messages** — emergent division,
+synthesis-once held with real agents.
 
 ## #21 — A2A pattern: leaderless leader election (2026-06-07)
 **probe:** can N peers elect a single coordinator over the hardened A2A primitive (`send … all`
@@ -52,7 +54,9 @@ stacked on a second election at peak load, bursty jitter the budget can't always
 the protocol logic is sound; the ceiling is the **transport** (a CLI fork per message), not the
 algorithm. Use leaderless election freely through N=5 (and N=7 steady); N=7-with-failover is the
 edge of this transport's envelope. To lift it, change the transport (persistent/batched delivery),
-not the protocol. Contrast #22: low-frequency stigmergy has no such ceiling.
+not the protocol. **Live demo** (`live_demo/`): 3 real heterogeneous peers (claude=30/codex=20/
+gemini=10) elected `alice`(claude) **unanimously** over A2A — 10 typed envelopes, leader then
+assigned a task to a follower, no orchestrator. Contrast #22: low-frequency stigmergy has no such ceiling.
 
 ## #20 — Drift detection: single reviewer vs cross-backend panel for /sanity (2026-06-07)
 **probe:** does a multi-reviewer panel beat a single reviewer at the doc↔code coherence task
