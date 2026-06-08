@@ -156,10 +156,15 @@ Nothing live depends on transient state: **no agents running (only the Orchestra
 named `Orchestrator`**, re-read live `git`/`tmux` state.
 **Open with the user** (don't auto-start; raise them):
 1. **Discuss the Roster Config UI** idea (parked configurator → manifest JSON).
-2. **Decide the demo strategy** for "the results of all our experiments." The A2A live-agent demo
-   layers (#21/#22) are now **built** (`…/live_demo/demo_result.md` + the trilogy index); the open
-   part is how to PRESENT them (a `/demo` walkthrough/video over the trilogy is the natural next step).
-**Resolved this session:** verifier→claude default — **user signed off** ("we have the data"). Everything CLOSED.
+2. **Roster polish / next experiments** — open to direction. (The "demo strategy" question is now
+   answered: the user chose a **slide deck**, built this session — see below.)
+**Resolved this session:** (a) verifier→claude default — **user signed off** ("we have the data");
+(b) the A2A live-agent demos are **built** (`…/live_demo/demo_result.md` + `experiments/a2a_patterns/
+README.md` trilogy index); (c) **slide deck** "Composing a reliable multi-agent system" —
+`slides/experiment-arc.html` (16 slides, real nerdy.com dark palette + Poppins, self-contained;
+content source `slides/DECK_BRIEF.md`). Built via a multi-agent pipeline (palette from nerdy.com
+live styles → brief → 2 ui-designer variants → judge → accuracy+HTML verify → finalizer), every
+number checked vs EXPERIMENTS.md, render-verified in-browser. Everything CLOSED.
 
 - **Current HEADs:** study repo **pushed** (`git -C ~/projects/agent-roster-observe-smoke rev-parse HEAD`);
   **plugin `agent_roster` is LOCAL-ONLY at `98e91ab` (v0.4.0) — commit, do NOT
