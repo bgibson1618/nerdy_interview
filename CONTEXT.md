@@ -17,8 +17,8 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   inefficient / over-engineered experiment designs for robustness.
 
 ## LIVE tmux state
-- Window 0 `Orchestrator` = this CLI session. **No other live agent windows** — the Phase 2b
-  interactive agents have all been torn down.
+- This CLI session's window = the orchestrator. **No live roster agent windows** — all demo/team
+  sessions have been torn down (re-check live `tmux` state on resume; window names drift across sessions).
 
 ## Build progress (user's current end state)
 - [x] **Phase 0** — scaffolding: `README.md`, `EXPERIMENTS.md`, `study/{drills,exercises}/`.
@@ -98,6 +98,20 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
       envelopes) and built a fact-sheet through pure stigmergy (0 messages) — `…/live_demo/demo_result.md`
       each; trilogy index `experiments/a2a_patterns/README.md`. **Verifier→claude default: user signed
       off.** See `experiments/a2a_patterns/{leader_election,shared_blackboard}/`.
+- [x] **Phase 10 — interview crash prep + Roster Config UI (end to end)** (this session). STUDY: interview
+      profile changed → now **coding-logic + OOP + scalability + system design** (the gap), live-coding
+      format, ~2 days out as of 2026-06-08. Built `study/interview-crash/` (2-day plan + primers `01`
+      system-design-from-zero / `02` OOP / `03` live-coding + worked Nerdy designs `04` booking / `05`
+      reminders), a **TS practice scratchpad** `study/practice/` (`tsx` runner; `npm run practice`/
+      `check:practice`/`debug`), and a **12-function logic-bug debugging set** `study/practice/debug/`
+      (user solved 15/15). ROSTER: built the user's **Roster Config UI** end to end — self-contained web
+      form `tools/roster-config/` → **JSON team manifest** → `run-team`. Plugin **v0.5.0** (`53531a5`):
+      per-instance `model`/`prompt` + JSON manifest parsing. **v0.6.0** (`900f545`): per-instance `posture`
+      (read-only|write|danger, mapped per backend) + `peers` (A2A, mutually exclusive w/ emit-artifact).
+      **v0.6.1** (`0ad1968`): fixed a **32-min hang** — `run-team`/`run-role` blocked on a stdin `$(cat)`
+      for a shared task when launched backgrounded/no-TTY (non-closing pipe); now skips stdin when every
+      role has a task, else bounded `timeout 2 cat` + fail-fast. **Peers proven live** (2 agents, correlated
+      A2A request/reply, secret-token handoff). 46/46 A2A tests green throughout.
 
 ## Open threads to pull next (user will pick one after /compact)
 - [x] **Harden the A2A primitive** — DONE (plugin local commit `090c877`, **v0.3.0**). Typed JSON
@@ -142,60 +156,60 @@ a dual-purpose space: real study material **+** a live testbed for the `agent_ro
   election + zero-message stigmergy fact-sheet. `…/live_demo/demo_result.md` + `experiments/a2a_patterns/
   README.md` (the "self-organization, three ways" trilogy index). The demo *strategy* (how to present
   these — video/walkthrough) is still the open discussion; the substance now exists to build it from.
-- **Roster Config UI** (USER'S idea, PARKED — don't start unprompted): a configurator that lets the user set
-  preferred agents/models/prompts per task → emits a **manifest JSON** the orchestrator uses to spawn the
-  `team`. User wants to **discuss this on return**. (Overlaps the roster "per-instance team task config" item.)
-- **Roster open items** (`EXPERIMENTS.md` tail): per-instance manifest/task config for `team` (see Config UI
-  above — still open). DONE this session in v0.4.0 (`98e91ab`): ~~default `verifier`→claude~~ (now claude;
-  **flag: behavioral change, user review**), ~~standard "emit artifact" posture~~ (`--emit-artifact`),
-  ~~interactive durable transcript~~ (`transcript` cmd + auto on `stop`). (A2A slash-command docs — DONE in 090c877.)
+- [x] **Roster Config UI** (USER'S idea) — **DONE** (Phase 10; plugin v0.5.0→v0.6.1). Self-contained web
+  configurator `tools/roster-config/index.html` → JSON team manifest → `run-team`. Per-instance
+  role/backend/model/prompt/posture/peers/interactive/emit-artifact. Resolves the "per-instance team task
+  config" open item; peers proven live; the no-TTY launch hang is fixed (v0.6.1).
+- [x] **Roster open items** — ~~per-instance manifest/task config for `team`~~ **DONE** (Config UI +
+  v0.5.0–v0.6.1). Earlier closed: v0.4.0 ~~verifier→claude~~ / ~~emit-artifact~~ / ~~durable transcript~~;
+  A2A slash-command docs (090c877). **No roster threads are currently open** — next session is open to new direction.
 
-## Resume note (updated 2026-06-07, end of the autonomous "user studying" session)
-Nothing live depends on transient state: **no agents running (only the Orchestrator window)**,
-`work/agents/` empty, working tree clean & pushed. On resume: **stay in orchestrator mode + window 0
-named `Orchestrator`**, re-read live `git`/`tmux` state.
+## Resume note (updated 2026-06-08, end of the Config-UI + interview-crash session)
+Nothing live depends on transient state: **no roster agents running**, temp demo workspaces removed,
+study working tree has only the user's own practice-file edits. On resume: **stay in orchestrator mode**,
+re-read live `git`/`tmux` state.
 **Open with the user** (don't auto-start; raise them):
-1. **Discuss the Roster Config UI** idea (parked configurator → manifest JSON).
-2. **Roster polish / next experiments** — open to direction. (The "demo strategy" question is now
-   answered: the user chose a **slide deck**, built this session — see below.)
-**Resolved this session:** (a) verifier→claude default — **user signed off** ("we have the data");
-(b) the A2A live-agent demos are **built** (`…/live_demo/demo_result.md` + `experiments/a2a_patterns/
-README.md` trilogy index); (c) **slide deck** "Composing a reliable multi-agent system" —
-`slides/experiment-arc.html` (16 slides, real nerdy.com dark palette + Poppins, self-contained;
-content source `slides/DECK_BRIEF.md`). Built via a multi-agent pipeline (palette from nerdy.com
-live styles → brief → 2 ui-designer variants → judge → accuracy+HTML verify → finalizer), every
-number checked vs EXPERIMENTS.md, render-verified in-browser. Everything CLOSED.
+1. **The interview is the active focus** — profile is coding-logic / OOP / scalability / **system design
+   (the gap)**, live-coding format, ~2 days out as of 2026-06-08. Live material: `study/interview-crash/`
+   + `study/practice/`. Offer a mock or more drills if they return to studying. (Memory:
+   `interview-profile-2026-06`.)
+2. **Roster: no open threads** — the Config UI shipped end to end (v0.5.0–v0.6.1). Open to new direction.
 
-- **Current HEADs:** study repo **pushed — `main` @ `2320b71`, in sync with `origin`** (re-check with
-  `git -C ~/projects/agent-roster-observe-smoke status -sb` on resume; the SHA advances each session);
-  **plugin `agent_roster` is LOCAL-ONLY at `98e91ab` (v0.4.0) — commit, do NOT
-  push the plugin repo** (standing user constraint).
-- **Gemini gotcha (important):** gemini limits are **per-model**. The CLI default (pro) free-tier window
-  exhausts fast ("exhausted your capacity on this model"); **use `--model gemini-3-flash-preview`** (user
-  confirmed headroom). The rate-limited serial runner is `experiments/drift_corpus/_harness/run_gemini.sh`.
-- **pkill gotcha (self-inflicted this session):** `pkill -f "run_gemini.sh"` ALSO matched the monitor
-  process (its cmdline contained that string) and killed it. Use precise patterns / `tmux kill-window` /
-  the roster `stop`, not broad `pkill -f`.
-- Stray-file gotcha still stands: roster agents with `bypassPermissions`/`workspace-write` can leave files;
-  sweep `work/agents/` + stray files after runs (the drift `_harness/runs/` is gitignored + cleaned).
+- **Current HEADs:** study repo `main` @ **`8df3ba1`** (re-check with `git -C
+  ~/projects/agent-roster-observe-smoke status -sb`; SHA advances + pushes happen per session); **plugin
+  `agent_roster` is LOCAL-ONLY at `0ad1968` (v0.6.1) — commit, do NOT push the plugin repo** (standing
+  user constraint).
+- **Roster launch gotcha (this session):** drive live `agent-roster team`/`run` launches **foreground**
+  and **always attach a bounded watcher** — a backgrounded, task-less launch used to hang on a stdin
+  `cat` (fixed in v0.6.1; now fails fast in ~2s). Burned ~30 min before catching it. Memory:
+  `roster-team-launch-foreground`.
+- **Gemini gotcha:** per-model limits — use `--model gemini-3-flash-preview` (pro free-tier exhausts).
+  Headless gemini in a new/untrusted folder needs `GEMINI_CLI_TRUST_WORKSPACE=true` (set via `tmux
+  set-environment -g`).
+- **pkill gotcha:** never broad `pkill -f` (matches monitors / wrong procs) — use precise PIDs / `tmux
+  kill-session` / roster `stop`.
+- **Don't touch** the user's `work/agents/sanity-brief-smoke-*` dirs (their Codex skill-sync agent's).
+- Stray-file gotcha: roster agents with writable/danger posture can leave files; sweep `work/agents/`
+  after runs.
 
 ## Key references
 - Study: `NERDY_STUDY_PLAN.md` (main plan), `NERDY_STACK.md` (authoritative stack — overrides
   web guesses; it's TS/JS, React, MySQL, SQL Server, OAuth, REST, Webhooks, gRPC, GraphQL),
   `study/exercises/*` (gotchas, stack Q&A), `study/drills/*` (16 static drills + 8 PR keys).
+  **Interview crash track (active):** `study/interview-crash/*` (2-day plan + SD/OOP/live-coding primers +
+  worked Nerdy designs) and `study/practice/*` (`tsx` scratchpad + 12-fn debugging set).
 - Sample app on `main`: `src/` (Express/TS skeleton + the merged feature branches over time),
   `package.json`/`tsconfig.json`. `npm install` done; `node_modules/`, `dist/`, `work/` gitignored.
 - Roster findings + open questions: `EXPERIMENTS.md`.
-- Plugin: `/home/bgibs/projects/agent_roster` (CLI: `bin/agent-roster`; adapters under
-  `adapters/tmux/`). v0.4.0 at `98e91ab`. **Closed in v0.4.0:** ~~interactive durable-transcript~~
-  (`transcript` cmd + auto on `stop`); ~~verifier→claude default~~ (shipped + user-signed-off);
-  ~~"emit artifact" posture~~ (`--emit-artifact` on `run`+`team`). **Still open:** per-instance
-  manifest/task config for `team` (confirmed in #7 — `team` keys prompts per role, not per
-  instance; overlaps the parked Roster Config UI).
+- Plugin: `/home/bgibs/projects/agent_roster` (CLI: `bin/agent-roster`; adapters under `adapters/tmux/`;
+  config UI `tools/roster-config/`). **v0.6.1 at `0ad1968`** (LOCAL-ONLY). Shipped: v0.4.0 verifier→claude
+  / emit-artifact / durable transcript; v0.5.0 per-instance model+prompt + JSON manifest; v0.6.0 posture +
+  peers; v0.6.1 no-TTY stdin fail-fast. **No roster items currently open.**
 
 ## Resume action
-Everything from Phases 0–9 is **CLOSED** (see the build-progress ledger and the resume note above).
-On resume: confirm orchestrator mode + window 0 named `Orchestrator`, re-read live `git`/`tmux` state
-(it changes across a compact), then **raise the one open thread — the parked Roster Config UI
-discussion** (or take new direction). Do NOT auto-reopen closed work. If the interview-prep track is
-active, the only standing study task is the current day's warm-up in `NERDY_STUDY_PLAN.md`.
+Everything from Phases 0–10 is **CLOSED** — including the Roster Config UI (shipped, v0.5.0–v0.6.1) and the
+no-TTY launch hang (fixed). On resume: confirm orchestrator mode, re-read live `git`/`tmux` state (it
+changes across a compact). **No roster threads are open.** The **interview is the active focus**
+(coding-logic / OOP / scalability / system-design, ~2 days out as of 2026-06-08) — if the user returns to
+studying, the live material is `study/interview-crash/` + `study/practice/` (offer a mock or more drills).
+Otherwise take new direction. Do NOT auto-reopen closed work.
